@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.edu.tradutoroffline.tests.MeasurementTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-09T21:55:06" hostname="DESKTOP-0OEIQOG" time="0.024">
+  <properties/>
+  <testcase name="null measurements remain explicit nulls with every schema key" classname="br.edu.tradutoroffline.tests.MeasurementTest" time="0.014"/>
+  <testcase name="correction preserves original identity and origin and clears obsolete translation" classname="br.edu.tradutoroffline.tests.MeasurementTest" time="0.001"/>
+  <testcase name="monotonic timing keeps elapsed values nonnegative and resets to null" classname="br.edu.tradutoroffline.tests.MeasurementTest" time="0.003"/>
+  <testcase name="export array round trips populated synthetic values and failures" classname="br.edu.tradutoroffline.tests.MeasurementTest" time="0.006"/>
+  <testcase name="typed turns never acquire speech latencies without a reference" classname="br.edu.tradutoroffline.tests.MeasurementTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

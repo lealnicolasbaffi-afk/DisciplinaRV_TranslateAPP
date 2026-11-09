@@ -3,6 +3,7 @@ package br.edu.tradutoroffline.app
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.ActivityNotFoundException
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
@@ -31,6 +32,16 @@ class MainActivity : Activity() {
     private lateinit var record: Button
     private lateinit var stop: Button
     private lateinit var prepare: Button
+    private lateinit var verify: Button
+    private lateinit var voices: Button
+    private lateinit var cancel: Button
+    private lateinit var setupToggle: Button
+    private lateinit var setupPanel: LinearLayout
+    private lateinit var measurementsToggle: Button
+    private lateinit var measurementsPanel: LinearLayout
+    private var setupExpanded = true
+    private var measurementsExpanded = false
+    private var lastResourcesReady = false
     private lateinit var modelPT: Button
     private lateinit var modelEN: Button
     private lateinit var importAudio: Button
@@ -44,12 +55,15 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        controller = ConversationController(this) { if (::state.isInitialized) render() }
+        @Suppress("DEPRECATION")
+        val retained = lastNonConfigurationInstance as? ConversationController
+        controller = retained ?: ConversationController(applicationContext) {}
         val scroll = ScrollView(this)
         val body = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(20), dp(16), dp(20), dp(24))
         }
+        var section = body
         scroll.addView(body)
         scroll.setOnApplyWindowInsetsListener { view, insets ->
             if (android.os.Build.VERSION.SDK_INT >= 30) {
@@ -62,17 +76,17 @@ class MainActivity : Activity() {
             insets
         }
         fun text(value: String, size: Float = 16f): TextView = TextView(this).apply {
-            text = value; textSize = size; setTextColor(Color.rgb(24, 38, 48)); setPadding(0, dp(9), 0, dp(5)); body.addView(this)
+            text = value; textSize = size; setTextColor(Color.rgb(24, 38, 48)); setPadding(0, dp(9), 0, dp(5)); section.addView(this)
         }
         fun button(label: String, action: () -> Unit): Button = Button(this).apply {
             text = label; isAllCaps = false; minHeight = dp(48)
-            setOnClickListener { action() }; body.addView(this)
+            setOnClickListener { action() }; section.addView(this)
         }
         fun edit(hintText: String, minLinesCount: Int): EditText = EditText(this).apply {
             hint = hintText; contentDescription = hintText; minLines = minLinesCount
             gravity = android.view.Gravity.TOP
             inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE or android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-            body.addView(this)
+            section.addView(this)
         }
         fun spinner(labels: List<String>, selected: (Int) -> Unit): Spinner = Spinner(this).apply {
             adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, labels)
@@ -81,7 +95,7 @@ class MainActivity : Activity() {
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { if (!rendering) selected(position) }
             }
-            body.addView(this)
+            section.addView(this)
         }
 
         text("Tradutor Offline", 26f)
@@ -89,13 +103,33 @@ class MainActivity : Activity() {
         text("Direção", 20f)
         direction = spinner(Direction.entries.map { it.label }) { controller.selectDirection(Direction.entries[it]) }
         direction.contentDescription = "Direção da tradução"
-        prepare = button("Preparar idiomas") { controller.prepare() }
+        setupToggle = button("Configurar idiomas e vozes") { setupExpanded = !setupExpanded; render() }
+        setupPanel = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; body.addView(this) }
+        section = setupPanel
+        prepare = button("Baixar e preparar idiomas (Wi-Fi)") { controller.prepare() }
+        verify = button("Verificar recursos locais (sem baixar)") { controller.prepare(download = false) }
+        voices = button("Instalar ou configurar vozes offline") {
+            try {
+                @Suppress("DEPRECATION")
+                startActivityForResult(Intent("com.android.settings.TTS_SETTINGS"), VOICES)
+            } catch (_: ActivityNotFoundException) {
+                try {
+                    @Suppress("DEPRECATION")
+                    startActivityForResult(Intent(android.provider.Settings.ACTION_SETTINGS), VOICES)
+                } catch (_: ActivityNotFoundException) {
+                    controller.notice("Abra as configurações do aparelho e instale as vozes offline pt-BR e en-US em Texto para fala.")
+                }
+            }
+        }
+        text("A preparação baixa cerca de 72 MB de reconhecimento e o pacote de tradução. Instale também as vozes pt-BR e en-US nas configurações de voz.", 14f)
         modelPT = button("Importar modelo Vosk PT (ZIP)") { openFile(MODEL_PT, "application/zip") }
         modelEN = button("Importar modelo Vosk EN (ZIP)") { openFile(MODEL_EN, "application/zip") }
         preparation = text("")
+        section = body
         text("Estado", 20f)
         state = text("")
         state.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+        cancel = button("Cancelar operação") { controller.interrupt("Operação cancelada. Os recursos já instalados foram preservados.") }
         text("Gravação", 20f)
         record = button("Gravar") {
             if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) controller.record()
@@ -118,14 +152,16 @@ class MainActivity : Activity() {
         output.setTextIsSelectable(true)
         replay = button("Reproduzir tradução") { controller.replayTranslation() }
         fresh = button("Nova rodada") { controller.reset() }
-        text("Medições e avaliação", 20f)
+        measurementsToggle = button("Medições e avaliação") { measurementsExpanded = !measurementsExpanded; render() }
+        measurementsPanel = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; body.addView(this) }
+        section = measurementsPanel
         metrics = text("")
         raw = text("")
         raw.setTextIsSelectable(true)
         airplane = CheckBox(this).apply {
             text = "Confirmo modo avião e Wi-Fi desligado (declaração manual)"
             setOnCheckedChangeListener { _, checked -> if (!rendering) controller.airplane = checked }
-            body.addView(this)
+            section.addView(this)
         }
         text("Qualidade da transcrição original")
         asrQuality = spinner(Quality.entries.map { it.label }) { controller.transcriptionQuality = Quality.entries[it].label }
@@ -143,9 +179,12 @@ class MainActivity : Activity() {
                 putExtra(Intent.EXTRA_TITLE, "medicoes.json")
             }, EXPORT)
         }
+        section = body
         text("Tempos são aproximações por callbacks. Nenhum teste físico é criado automaticamente. Modelos e vozes devem ser preparados antes do modo avião.", 14f)
         setContentView(scroll)
+        controller.observe { render() }
         render()
+        if (retained == null) controller.prepare(download = false)
     }
 
     private fun render() {
@@ -154,6 +193,13 @@ class MainActivity : Activity() {
             state.text = if (controller.storageFailure == null) "${controller.stage.label}\n${controller.message}"
                 else "Erro de armazenamento\n${controller.storageFailure}\n${controller.message}"
             preparation.text = controller.preparation
+            val resourcesReady = controller.speechReady && controller.translationReady && controller.voiceReady
+            if (resourcesReady && !lastResourcesReady) setupExpanded = false
+            lastResourcesReady = resourcesReady
+            setupPanel.visibility = if (setupExpanded) View.VISIBLE else View.GONE
+            setupToggle.text = if (setupExpanded) "Ocultar configuração de idiomas" else if (resourcesReady) "Idiomas prontos · configurar" else "Configurar idiomas e vozes"
+            measurementsPanel.visibility = if (measurementsExpanded) View.VISIBLE else View.GONE
+            measurementsToggle.text = "${if (measurementsExpanded) "Ocultar" else "Mostrar"} medições e avaliação · ${controller.count} salvas"
             direction.setSelection(controller.direction.ordinal)
             if (input.text.toString() != controller.input) input.setText(controller.input)
             output.text = controller.output.ifBlank { "A tradução aparecerá aqui." }
@@ -167,6 +213,9 @@ class MainActivity : Activity() {
             raw.text = "Transcrição/texto original para avaliação: ${m?.rawInput.orEmpty()}"
             direction.isEnabled = !controller.busy
             prepare.isEnabled = !controller.busy
+            verify.isEnabled = !controller.busy
+            voices.isEnabled = !controller.busy
+            cancel.visibility = if (controller.busy && controller.stage != Stage.RECORDING) View.VISIBLE else View.GONE
             modelPT.isEnabled = !controller.busy; modelEN.isEnabled = !controller.busy
             record.isEnabled = controller.canRecord
             importAudio.isEnabled = controller.canRecord
@@ -195,6 +244,7 @@ class MainActivity : Activity() {
     @Deprecated("Native Activity callback kept to avoid an additional UI dependency")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == VOICES) { controller.prepare(download = false); return }
         if (resultCode != RESULT_OK) return
         val uri = data?.data ?: return
         when (requestCode) {
@@ -214,7 +264,14 @@ class MainActivity : Activity() {
     }
 
     override fun onStop() { controller.interrupt(); super.onStop() }
-    override fun onDestroy() { controller.close(); super.onDestroy() }
+    @Deprecated("Native Activity retention keeps the current turn across configuration changes")
+    override fun onRetainNonConfigurationInstance(): Any = controller
+
+    override fun onDestroy() {
+        controller.observe {}
+        if (!isChangingConfigurations) controller.close()
+        super.onDestroy()
+    }
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     private fun watcher(update: (String) -> Unit) = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -226,6 +283,7 @@ class MainActivity : Activity() {
         private const val MODEL_EN = 11
         private const val AUDIO = 12
         private const val EXPORT = 13
+        private const val VOICES = 14
         private const val MICROPHONE = 20
     }
 }

@@ -1,64 +1,93 @@
-# Testes e evidências
+# Testes e evidências — Android 0.2.0
 
-## Executado neste ciclo — 09/11/2026
+Execuções em 09/11/2026 no código desta pasta. Aparelho físico: Samsung SM-A546E, Android 16/API 36, arm64-v8a.
 
-O ambiente inicial oferecia runtime OpenJDK 21, sem `javac` disponível ao Gradle, sem Gradle global, SDK, `sdkmanager` ou `adb` localizados. Foi preparado um JDK completo Temurin 17.0.21+9 em `work/`, com SHA-256 conferido. Não foram instalados SDK, emulador ou modelos de fala completos, nem aceitas licenças Android automaticamente.
+## Build Android real
 
-- Wrapper Gradle 8.11.1 executou `--version`; JAR e distribuição tiveram hashes conferidos. `Configuration/verificar-wrapper.sh` passou.
-- `gradlew help --offline` com JDK 17 passou; configuração Kotlin DSL e plugins carregaram.
-- Os oito classpaths de compilação/runtime do app e dos testes debug/release foram resolvidos e fixados em `gradle.lockfile`, sem dependências irresolvidas.
-- **Compilação Kotlin integrada em JVM e 23 testes passaram**, usando um harness temporário em `work/harness`, JDK 17, Kotlin 2.2.0 e stubs `android-all:15-robolectric-12650502` para API 35. O harness compila os Sources reais e os Tests reais; não inicia Activity, áudio, Vosk nativo ou ML Kit. Ele não é o build Android.
-- Os testes incluem 10 casos de WAV, 8 de ZIP/modelo e 5 de contrato/medições. As fixtures são sintéticas e identificadas; nenhuma entra no histórico do app.
-- Validador Python do schema aceitou `[]` e rejeitou coleção sintética incompleta/com tipo inválido. As 12 frases Android são byte a byte iguais às de shared: seis PT e seis EN. XMLs, scripts shell, UTF-8 e whitespace foram verificados.
-- **`assembleDebug testDebugUnitTest lintDebug` não executaram até o fim**: após resolver o JDK, o Gradle parou por `SDK location not found`. Nenhum APK foi gerado. Os testes acima foram executados pelo harness JVM; o task Android de testes e o lint continuam pendentes.
+Com JDK Temurin 17.0.18 do Unity, SDK Platform 35 e Build Tools 35.0.0 instalados em work/sdk:
 
-Comando do harness local usado, enquanto seus intermediários existirem:
-
-```bash
-JAVA_HOME="$PWD/work/jdk/jdk-17.0.21+9" \
-GRADLE_USER_HOME="$PWD/work/gradle-home" \
-./gradlew -p work/harness --offline --no-daemon test --console=plain
+```powershell
+.\Configuration\check.ps1 -Offline -DeviceTests
 ```
 
-O sandbox restringe o socket local do daemon Gradle; a verificação foi executada com autorização automática para esse processo. Isso não indica falha do código. Logs locais: `work/build-check.log` (JDK inicial), `work/build-check-jdk17.log` (SDK ausente), `work/gradle-help.log`, `work/dependency-lock-all.log` e `work/harness/final-check.log`; resultados JUnit XML em `work/harness/build/test-results/test`. Esses arquivos eram intermediários ignorados, e não medições do aplicativo. Na limpeza solicitada em 09/11/2026, `work/` e `.gradle/` foram removidos: os logs, o harness temporário e o JDK local não acompanham mais a entrega. O resumo dos resultados executados permanece neste documento; para repetir os checks, prepare JDK/SDK e use `Configuration/check.sh`.
+Resultado: **BUILD SUCCESSFUL**, incluindo assembleDebug, testDebugUnitTest, lintDebug e assembleDebugAndroidTest. APK debug 0.2.0, versionCode 2, pacote br.edu.tradutoroffline. APK instalado no aparelho por ADB. O Wrapper teve SHA-256 conferido. O build substitui o antigo bloqueio por SDK ausente; o harness com stubs da entrega anterior não é a evidência usada aqui.
 
-Evidência resumida do bloqueio nativo:
+Lint terminou com **0 erros e 20 advertências**: versões mais novas disponíveis, textos da UI em português diretamente no código, duas verificações de API redundantes e ícone monocromático opcional ausente. Não foi usado baseline para esconder erros.
 
-```text
-Could not determine the dependencies of task ':compileDebugJavaWithJavac'.
-SDK location not found. Define a valid SDK location with an ANDROID_HOME
-environment variable or by setting the sdk.dir path in local.properties.
-BUILD FAILED
+## Testes JVM: 29 passaram
+
+| Grupo | Testes | Falhas | Ignorados |
+| --- | ---: | ---: | ---: |
+| WAV/PCM e limites | 10 | 0 | 0 |
+| ZIP, caminhos, layout e limites | 8 | 0 | 0 |
+| SHA-256, truncamento, tamanho e cancelamento | 4 | 0 | 0 |
+| ZIPs oficiais PT e EN reais | 2 | 0 | 0 |
+| Contrato/JSON e medições | 5 | 0 | 0 |
+
+Os testes de ZIPs oficiais usam fixtures em work/models. Sem esses arquivos, apenas esses dois casos são ignorados ao repetir em outro ambiente. Nesta execução ambos rodaram. Nenhuma fixture foi inserida no histórico real de medições do usuário.
+
+## Instrumentação no aparelho: 3 passaram
+
+Executados novamente após a mudança final da tela, em 11,188 segundos:
+
+- Abertura da Activity e preservação do texto após recriação.
+- Persistência e recuperação de backup AtomicFile, com exportação UTF-8.
+- Importação dos dois modelos completos, abertura nativa Vosk e rejeição de silêncio nos dois sentidos.
+
+Os testes usam diretórios isolados no cache; não criam resultados fictícios no histórico do usuário. VoskNativeTest exige os dois ZIPs no APK de testes. Os modelos não entram no APK principal.
+
+## Preparação real do app: 1 teste passou
+
+A preparação no Samsung levou 68,150 segundos neste ensaio: os dois ZIPs foram baixados pelo próprio código Android, verificados por SHA-256, importados e abertos nativamente; o pacote português do ML Kit foi instalado e ambas as vozes locais foram verificadas.
+
+Modelos extraídos: PT 53.552.717 bytes; EN 70.898.967 bytes. Vozes selecionadas pelo motor Google: pt-BR-language e en-US-language. Esses tamanhos são arquivos extraídos, não RAM. A preparação permanece instalada para uso normal do aplicativo.
+
+## Tradução e voz offline: 1 teste passou
+
+O script ativou modo avião e desligou Wi-Fi; o teste verificou AIRPLANE_MODE_ON=1 e ausência de rede ativa antes e depois do ensaio. Reabriu os modelos locais, conferiu o pacote já instalado e traduziu/reproduziu ambos os sentidos sem solicitar download.
+
+| Direção | Entrada | Saída real | Chamada de tradução |
+| --- | --- | --- | ---: |
+| PT → EN | Bom dia. Onde fica a estação? | Good morning. Where is the station? | 318,94 ms |
+| EN → PT | The station is two blocks away. | A estação fica a dois quarteirões de distância. | 216,42 ms |
+
+O motor confirmou início e conclusão de síntese em ambos os sentidos. O teste completo levou 11,837 segundos. São duas chamadas de serviço neste aparelho, não médias de desempenho, latência acústica ou medições de microfone. Não foram adicionadas à coleção do usuário.
+
+Ao terminar, o script restaurou modo avião desligado e Wi-Fi ligado; esses valores foram consultados novamente pelo ADB. O script conserva o estado anterior em cada nova execução.
+
+## Fala humana e qualidade
+
+Duas rodadas reais de microfone foram concluídas no Samsung e o usuário confirmou transcrição e áudio em ambos os sentidos. No segundo ensaio, confirmou ter ativado modo avião e desligado Wi-Fi. A campanha comum de 12 frases × 3 repetições, 36 tentativas, não foi concluída. Testes instrumentados e texto sintetizado não contam como repetições humanas. Memória, bateria, temperatura, ruído e qualidade estatística ainda não foram medidos.
+
+O reconhecimento ocorre após Parar ou 20 segundos. Replays/correções atualizam a rodada e preservam rawInput/origem; não são novas tentativas. O callback TTS aproxima início de síntese, sem medir som no ambiente.
+
+
+### Duas rodadas interativas reais
+
+| Direção | Transcrição real | Tradução real | Parar → transcrição | Parar → início TTS |
+| --- | --- | --- | ---: | ---: |
+| PT → EN | bom dia onde fica a estação | Good morning, where is the station. | 2.504 ms | 3.009 ms |
+| EN → PT | the station is two blocks away | A estação fica a dois quarteirões de distância | 2.114 ms | 2.482 ms |
+
+Ambas têm origem microfone e failure=null. As chamadas de tradução levaram 218,24 ms e 145,79 ms. São duas observações, sem média ou controle de ruído. O JSON privado salvo foi lido por ADB e validado pelo validador do contrato v1: dois registros válidos. Evidência: Evidencias/medicoes-microfone.json e validation-device-json.log.
+
+A caixa manual de modo avião não foi marcada nessas rodadas: airplaneModeConfirmed permanece false no JSON, sem alteração retroativa. A condição offline do segundo ensaio foi relatada pelo usuário. Separadamente, o teste instrumentado acima verificou modo avião e ausência de rede via API.
+## Repetir no aparelho
+
+```powershell
+.\Configuration\device.ps1 -Serial SERIAL
+.\Configuration\device.ps1 -Serial SERIAL -Prepare
+.\Configuration\device.ps1 -Serial SERIAL -OfflineTest
 ```
 
-## Cobertura e limites
+A preparação e o ensaio offline exigem opt-in explícito nos testes. O script de offline testa tradução/voz e restaura rede em finally. Ele não executa gravações automáticas de pessoas.
 
-WAV: PCM16 mono/16 kHz, cabeçalho, chunks auxiliares e padding, truncamento, codificação/taxa/canais inválidos, duração, arquivo vazio. ZIP: dois layouts oficiais diferentes (PT legado plano; EN em am/conf/graph), caminho inseguro/outro modelo, entrada excessiva, quantidade excessiva, arquivo essencial ausente e cancelamento. São parsers puros; não provam abertura nativa de um modelo real no Android.
+## Evidências preservadas
 
-Medições: todas as 20 propriedades obrigatórias, `null` explícito, acentos/aspas/quebras de linha, roundtrip, falha, correção preservando UUID/data/origem/rawInput e tempo da transcrição, e relógio monotônico sem referência para texto digitado. Recuperação `AtomicFile`, SAF e ciclo de vida foram revisados estaticamente; precisam de teste Android. Não há cobertura automatizada da tela e dos serviços reais neste ciclo.
+- Evidencias/build-delivery.log e XMLs JUnit: build real e 29 testes.
+- Evidencias/lint-results-debug.html e XML: relatório completo de lint.
+- Evidencias/instrumentation-final.log: três testes nativos na versão final.
+- Evidencias/device-prepare.log: download/instalação efetivos no aparelho.
+- Evidencias/device-offline.log: rede ausente, traduções reais e callbacks TTS.
 
-## Repetir os checks nativos
-
-Com JDK completo 17 e SDK configurado/licenciado:
-
-```bash
-JAVA_HOME=/caminho/jdk-17 ANDROID_HOME=/caminho/sdk ./Configuration/check.sh
-```
-
-Isso executa `assembleDebug testDebugUnitTest lintDebug`. Só após sucesso instalar o APK e passar aos testes físicos. Para conferir uma exportação real, em Python com `jsonschema` instalado:
-
-```bash
-python3 Tests/validar_medicoes.py /caminho/medicoes.json
-```
-
-O validador usa o schema comum inalterado, incluindo formatos UUID e data/hora. Schema válido não comprova origem física, qualidade ou condição de rede.
-
-## Plano físico comum — 0/36 tentativas executadas
-
-Confirmar primeiro aparelho, versão/API, arquitetura, motor/vozes TTS e espaço livre. Não preencher resultados antes das execuções. Usar as 12 frases em `Tests/frases.csv`, com três repetições por aparelho: 36 primeiras tentativas de microfone planejadas. Anotar ID e repetição em `notes`. Correções/replays atualizam a rodada e não contam como nova repetição; usar **Nova rodada** para cada tentativa planejada.
-
-Registrar ruído, distância, falante, versão, bateria, aquecimento, execução fria/quente e rede. Separar avaliação de transcrição original, tradução e voz antes de avaliar o fluxo completo. Com modo avião e Wi-Fi desligado, confirmar que nenhum estágio pede rede. Medir memória em rodada separada com Android Profiler; registrar separadamente o tamanho dos modelos e o espaço total do app mostrado pelo SO. Bytes dos arquivos Vosk não são RAM nem espaço alocado em disco.
-
-Exercitar também: permissão negada/permanentemente negada; ambos os sentidos; parada manual e limite automático de 20 s; silêncio; chamadas e concorrência de microfone/áudio; perda de foco, bloqueio/rotação/saída da tela; arquivo corrompido, estéreo ou longo; ZIP ausente/corrompido/idioma errado; pacote ML Kit ou voz removidos depois da preparação; falta de espaço; timeouts e repetição após erro; edição com origem preservada; replay sem reescrever latência; reinício do app e exportação/validação do JSON; gravação atômica interrompida. Comparar separadamente microfone, arquivo, texto e correções.
-
-Tempos usam `SystemClock.elapsedRealtime`/`elapsedRealtimeNanos`. Manual: referência no clique **Parar**; automático: fim lógico da captura antes da finalização WAV; arquivo: fim da importação; digitado: sem referência. `transcriptionMS` termina na transcrição, `textMS` ao retornar a tradução, `translationMS` mede somente a chamada `Translator.translate` até retornar (a verificação do pacote e a criação do cliente ficam fora desse intervalo), e `audioStartMS` termina em `onStart` do TTS. Este callback aproxima disponibilidade, sem medir saída acústica. Revisão humana entra nos tempos de uma correção. Medidas indisponíveis permanecem `null`; nenhuma falha vira zero.
+O plano de demonstração e os cenários de erro estão em DEMONSTRACAO.md. O schema comum permanece em ../../shared/medicoes.schema.json.

@@ -7,6 +7,7 @@ import kotlinx.coroutines.CompletableDeferred
 /** Platform adapters must fail explicitly; none of these contracts allows remote fallback. */
 interface SpeechRecognitionService : AutoCloseable {
     fun modelStatus(): String
+    suspend fun downloadMissingModels(progress: (String) -> Unit)
     suspend fun importModel(language: String, input: InputStream)
     suspend fun prepare()
     suspend fun transcribe(file: File, direction: Direction): String
