@@ -12,8 +12,10 @@ android {
         applicationId = "br.edu.tradutoroffline"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64") }
     }
 
     sourceSets {
@@ -26,6 +28,11 @@ android {
         getByName("test") {
             java.setSrcDirs(listOf("Tests"))
             resources.setSrcDirs(listOf("Tests/fixtures"))
+        }
+        getByName("androidTest") {
+            java.setSrcDirs(listOf("DeviceTests"))
+            // Downloaded integration fixtures belong only to the test APK.
+            assets.setSrcDirs(listOf("work/models"))
         }
     }
 
@@ -65,4 +72,6 @@ dependencies {
     implementation("net.java.dev.jna:jna:5.18.1@aar")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }

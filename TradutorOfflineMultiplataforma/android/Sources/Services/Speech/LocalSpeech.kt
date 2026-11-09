@@ -1,6 +1,8 @@
 package br.edu.tradutoroffline.services.speech
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.AtomicFile
 import br.edu.tradutoroffline.domain.SpeechRecognitionService
 import br.edu.tradutoroffline.domain.Direction
@@ -24,6 +26,8 @@ import java.util.UUID
 
 /** Vosk consumes only private files. This adapter never makes a network request. */
 class LocalSpeech(context: Context) : SpeechRecognitionService {
+    private val cache = context.applicationContext.cacheDir
+    private val connectivity = context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     private val directory = File(context.applicationContext.filesDir, "vosk")
     private val mutex = Mutex()
     @Volatile private var closed = false
@@ -46,6 +50,34 @@ class LocalSpeech(context: Context) : SpeechRecognitionService {
                 ?: "tamanho indisponível até preparar"
             "$status, $size"
         } else status
+    }
+
+    override suspend fun downloadMissingModels(progress: (String) -> Unit) = withContext(Dispatchers.IO) {
+        for (spec in ModelArchive.specifications) {
+            checkOpen()
+            currentCoroutineContext().ensureActive()
+            if (mutex.withLock { activeModel(spec) != null }) continue
+            check(connectivity.getNetworkCapabilities(connectivity.activeNetwork)?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) {
+                "Ative o Wi-Fi para baixar os modelos Vosk ou importe os ZIPs oficiais já salvos no aparelho."
+            }
+            val archive = File.createTempFile("vosk-download-", ".zip", cache)
+            try {
+                val coroutine = currentCoroutineContext()
+                var lastPercent = -1L
+                ModelDownload.download(spec, archive, { bytes, size ->
+                    val percent = size?.takeIf { it > 0 }?.let { bytes * 100 / it }
+                    val bucket = percent ?: (bytes / (1_024 * 1_024))
+                    if (bucket != lastPercent) {
+                        lastPercent = bucket
+                        progress("Baixando modelo ${spec.language.uppercase()}: ${percent?.let { "$it%" } ?: "${bytes / (1_024 * 1_024)} MiB"}…")
+                    }
+                }, { coroutine.ensureActive(); checkOpen() })
+                progress("Validando e instalando modelo ${spec.language.uppercase()}…")
+                archive.inputStream().use { importModel(spec.language, it) }
+            } finally {
+                archive.delete()
+            }
+        }
     }
 
     /** An existing model stays active until the new version passes native validation. */

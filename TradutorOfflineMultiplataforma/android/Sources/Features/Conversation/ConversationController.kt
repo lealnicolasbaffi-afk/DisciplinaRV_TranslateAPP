@@ -15,7 +15,7 @@ import java.io.File
 import java.util.UUID
 
 /** One active job and a generation guard prevent stale callbacks changing a later turn. */
-class ConversationController(private val context: Context, private val changed: () -> Unit) {
+class ConversationController(private val context: Context, private var changed: () -> Unit) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val speech: SpeechRecognitionService = LocalSpeech(context)
     private val audio: AudioService = LocalAudio(context)
@@ -28,7 +28,7 @@ class ConversationController(private val context: Context, private val changed: 
     private var timing = TurnTiming()
     var stage = Stage.READY; private set
     var direction = Direction.PT_EN; private set
-    var message = "Prepare os idiomas e importe os dois modelos Vosk antes da gravação."; private set
+    var message = "Com Wi-Fi, toque em Baixar e preparar idiomas. Depois, use o tradutor sem internet."; private set
     var input = ""
     var output = ""; private set
     var current: Measurement? = null; private set
@@ -91,16 +91,28 @@ class ConversationController(private val context: Context, private val changed: 
         )
     }
 
-    fun prepare() = operation(Stage.PREPARING, persistFailure = false) { token ->
+    fun observe(observer: () -> Unit) { changed = observer }
+
+    /** Automatic recheck is local only, so reopening the app in airplane mode remains usable. */
+    fun prepare(download: Boolean = true) = operation(Stage.PREPARING, persistFailure = false) { token ->
         speechReady = false; translationReady = false; voiceReady = false
         val failures = mutableListOf<String>()
         try {
-            message = "Preparando tradução PT/EN pela internet…"; changed()
-            withTimeout(120_000) { translation.prepare() }
+            message = if (download) "Preparando tradução PT/EN…" else "Verificando recursos instalados no aparelho…"; changed()
+            if (download) withTimeout(180_000) { translation.prepare() }
             translationReady = translation.isReady()
+            if (!translationReady) failures += "Tradução ausente. Com Wi-Fi, toque em Baixar e preparar idiomas."
         } catch (e: Exception) { if (e is CancellationException && e !is TimeoutCancellationException) throw e; failures += "Tradução: ${e.message ?: "tempo limite"}" }
         ensure(token)
-        try { withTimeout(45_000) { speech.prepare() }; speechReady = true }
+        try {
+            if (download) withTimeout(600_000) {
+                speech.downloadMissingModels { status ->
+                    scope.launch { if (generation == token) { message = status; changed() } }
+                }
+            }
+            message = "Verificando reconhecimento local…"; changed()
+            withTimeout(90_000) { speech.prepare() }; speechReady = true
+        }
         catch (e: Exception) { if (e is CancellationException && e !is TimeoutCancellationException) throw e; failures += "Reconhecimento: ${e.message ?: "tempo limite"}" }
         ensure(token)
         var voices = "Vozes indisponíveis."
@@ -123,7 +135,7 @@ class ConversationController(private val context: Context, private val changed: 
         ensure(token)
         speechReady = false
         preparation = speech.modelStatus()
-        message = "Modelo importado. Toque em Preparar idiomas para verificar os recursos locais."
+        message = "Modelo importado. Toque em Verificar recursos locais para concluir a preparação."
         stage = Stage.READY
     }
 
@@ -289,12 +301,12 @@ class ConversationController(private val context: Context, private val changed: 
     }
 
     /** Called on Activity.onStop, including incoming calls/switching away. */
-    fun interrupt() {
+    fun interrupt(reason: String = "Operação interrompida ao sair da tela. Tente novamente.") {
         if (!busy) return
         generation++
         job?.cancel(); stopSignal?.cancel(); stopSignal = null
         synthesis.stop(); audio.stop()
-        fail("Operação interrompida ao sair da tela. Tente novamente.", stage != Stage.PREPARING)
+        fail(reason, stage != Stage.PREPARING)
         changed()
     }
 

@@ -8,13 +8,13 @@ import java.util.zip.ZipInputStream
 
 /** Bounded ZIP extraction; no native/Android dependency so validation can run on the JVM. */
 object ModelArchive {
-    data class Spec(val language: String, val directory: String) {
+    data class Spec(val language: String, val directory: String, val sha256: String) {
         val url: String get() = "https://alphacephei.com/vosk/models/$directory.zip"
     }
 
     val specifications = listOf(
-        Spec("pt", "vosk-model-small-pt-0.3"),
-        Spec("en", "vosk-model-small-en-us-0.15"),
+        Spec("pt", "vosk-model-small-pt-0.3", "6e1ce909032e1afa7a88e68a3d628ecafff302bdf195befab308826c395e93b7"),
+        Spec("en", "vosk-model-small-en-us-0.15", "30f26242c4eb449f948e42cb302dd7a686cb29a3423a8367f99ff41780942498"),
     )
     const val MAX_COMPRESSED_BYTES = 100L * 1_024 * 1_024
     const val MAX_EXPANDED_BYTES = 256L * 1_024 * 1_024

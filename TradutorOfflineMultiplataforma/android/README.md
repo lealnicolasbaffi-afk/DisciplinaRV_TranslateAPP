@@ -1,51 +1,57 @@
-# Tradutor Offline — Android
+# Tradutor Offline — Android 0.2.0
 
-Protótipo acadêmico nativo Kotlin, PT-BR ↔ EN-US. Esta pasta é a fonte de verdade Android; o contrato está em `../shared/ESPECIFICACAO.md` e `../shared/medicoes.schema.json`. A frente iOS é independente. Nenhuma medição física foi realizada.
+Aplicativo nativo Kotlin, português brasileiro ↔ inglês americano, por turnos de até 20 segundos. Após Parar, o app transcreve com Vosk, traduz com ML Kit e reproduz com uma voz local do Android. Também aceita texto digitado e WAV de reserva.
 
-## Executar os checks
+## Instalar e preparar
 
-Requisitos: JDK completo 17, Android SDK Platform 35 e Build Tools 35.0.0 instalados; internet na primeira resolução das dependências.
+1. Instale o APK de teste `TradutorOfflineAndroid-debug.apk` ou use o script abaixo com o aparelho autorizado no ADB.
+2. Com Wi-Fi, abra **Configurar idiomas e vozes** → **Baixar e preparar idiomas (Wi-Fi)**. O app baixa os dois modelos Vosk oficiais, confere SHA-256 e verifica os modelos nativos e a tradução local. Os ZIPs podem ser importados manualmente como alternativa.
+3. Se o app indicar voz ausente, use **Instalar ou configurar vozes offline** e instale os dados pt-BR e en-US. Depois toque em **Verificar recursos locais (sem baixar)**.
+4. Quando os recursos estiverem prontos, a configuração se recolhe. Selecione a direção, toque em **Gravar**, conceda o microfone, fale e toque em **Parar**. O limite automático é 20 segundos.
+5. Confira o funcionamento em modo avião, com Wi-Fi desligado. Reabrir o app só verifica os recursos já instalados, sem iniciar downloads.
 
-```bash
-cd /caminho/TradutorOfflineMultiplataforma/android
-export JAVA_HOME=/caminho/do/jdk-17
-export ANDROID_HOME=/caminho/do/Android/Sdk
-./Configuration/verificar-wrapper.sh
-./Configuration/check.sh
+**Ouvir original**, correção da transcrição, **Traduzir e falar** e replay estão disponíveis. **Nova rodada** começa outra tentativa. O WAV de reserva deve ser PCM16, mono, 16 kHz, até 20 segundos.
+
+## Build no Windows
+
+Requisitos: JDK completo 17, SDK Platform 35 e Build Tools 35.0.0. Neste computador o SDK fica em `android/work/sdk`, e o script localiza o JDK do Unity já instalado. Caches e ferramentas ficam fora do código versionado.
+
+```powershell
+cd android
+.\Configuration\check.ps1 -DeviceTests
+# Com dependências já baixadas:
+.\Configuration\check.ps1 -Offline -DeviceTests
+# Outro computador:
+.\Configuration\check.ps1 -Jdk 'C:\caminho\jdk-17' -AndroidSdk 'C:\caminho\sdk' -DeviceTests
 ```
 
-O script usa o cache Gradle em `work/gradle-home`, sem instalar SDK ou aceitar licenças. O Gradle Wrapper 8.11.1 está incluído com checksum da distribuição. APK esperado **após build bem-sucedido**: `build/outputs/apk/debug/android-debug.apk`. A instalação pode ser feita pelo Android Studio ou `adb install -r build/outputs/apk/debug/android-debug.apk`, com depuração USB autorizada pelo usuário.
+O script verifica o Wrapper e executa assembleDebug, testDebugUnitTest e lintDebug. `-DeviceTests` também compila o APK de instrumentação. O APK fica em `build/outputs/apk/debug/TradutorOfflineAndroid-debug.apk`. A versão debug é assinada com chave de desenvolvimento; publicação em loja exige assinatura e revisão de lançamento próprias.
 
-Resultado executado neste ciclo e bloqueios: consulte `Docs/STATUS.md` e `Docs/TESTES.md`. Executar o wrapper não comprova compilação ou funcionamento offline.
+No Linux/macOS, configure JAVA_HOME e ANDROID_HOME e execute `./Configuration/check.sh`. Para compilar instrumentação acrescente `assembleDebugAndroidTest`.
 
-## Preparar o aparelho
+## Executar no aparelho por USB
 
-1. Instale o app e copie para o aparelho os ZIPs oficiais `vosk-model-small-pt-0.3.zip` e `vosk-model-small-en-us-0.15.zip`. Eles não fazem parte do APK.
-2. Na tela, use **Importar modelo Vosk PT (ZIP)** e **Importar modelo Vosk EN (ZIP)**. Não descompacte os arquivos antes da importação.
-3. Instale previamente as vozes offline pt-BR e en-US nas configurações de texto para fala do Android. As opções e os nomes variam conforme o motor.
-4. Com Wi-Fi ligado, toque em **Preparar idiomas**. Esse passo baixa o pacote português do ML Kit e verifica os modelos e vozes. O inglês é incorporado pelo ML Kit. Gravação depende do Vosk preparado; tradução de texto depende do pacote ML Kit. Uma falha posterior de voz preserva o texto e registra a falha.
-5. Ative modo avião, desligue Wi-Fi e execute o roteiro em `Docs/DEMONSTRACAO.md`. Marque a confirmação manual apenas nessa condição.
+```powershell
+# Liste os aparelhos:
+.\work\sdk\platform-tools\adb.exe devices -l
+# Instale e execute os três testes nativos isolados:
+.\Configuration\device.ps1 -Serial SERIAL_DO_APARELHO
+# Prepare modelos e verifique vozes no armazenamento real do app:
+.\Configuration\device.ps1 -Serial SERIAL_DO_APARELHO -Prepare
+# Teste tradução e síntese offline; o script restaura a conexão no finally:
+.\Configuration\device.ps1 -Serial SERIAL_DO_APARELHO -OfflineTest
+```
 
-Detalhes e fontes oficiais: `Docs/CONFIGURACAO.md`.
+Os testes nativos de Vosk usam os ZIPs em `work/models`, incluídos somente no APK de testes. Sem esses arquivos, o teste de modelos reais é marcado como ignorado. Os dois testes JVM com ZIPs oficiais têm a mesma condição. Os demais testes usam fixtures pequenas. Os ensaios de serviço não criam medições fictícias na coleção do usuário.
 
-## Tela e fluxo
+## Dados e ciclo de vida
 
-Direção → preparação → estado → gravação → transcrição editável/ouvir original → tradução/reprodução → medições/avaliação/exportação. Após **Parar** ou 20 segundos, o app transcreve, traduz e fala automaticamente. **Traduzir e falar** permite corrigir o texto, mantendo a origem e o instante da rodada. **Nova rodada** limpa áudio, texto e avaliações; escolha essa ação para começar um texto digitado independente.
+As medições ficam em `files/medicoes.json`, no armazenamento privado, com gravação atômica e contrato v1 de `../shared/medicoes.schema.json`. Abra **Mostrar medições e avaliação** para avaliar, anotar e exportar JSON pelo seletor do Android. Exporte antes de desinstalar ou limpar os dados.
 
-O áudio de reserva deve ser WAV PCM16, mono, 16 kHz, até 20 segundos. Microfone e importação preservam o original no cache apenas para o replay da rodada atual. Não há envio remoto de fala, tradução ou síntese solicitado pelo app. A seleção de voz offline se baseia no que o motor Android declara; o teste em modo avião continua necessário.
+A rodada corrente é mantida ao recriar a Activity. Sair da tela ou girá-la durante uma operação cancela áudio/trabalho ativo; o texto e as medições da rodada permanecem. Encerrar o processo não restaura o áudio/estado corrente; medições já salvas continuam no armazenamento. Backups e transferências automáticas estão desativados.
 
-As medições são salvas atomicamente em `files/medicoes.json` no armazenamento privado do app. Resultados/falhas são persistidos automaticamente; notas, confirmação e qualidades são persistidas por **Salvar avaliação**. **Exportar medições JSON** usa o seletor de arquivos. Exportação vazia é `[]`. Desinstalação/limpeza dos dados apaga medições e modelos; exporte antes. Reprodução repetida preserva a primeira latência; corrigir e retraduzir atualiza a mesma rodada, incluindo o tempo de revisão humana. Não misture esses casos com primeiras tentativas.
+## Evidências e limites
 
-## Módulos
+Consulte [STATUS](Docs/STATUS.md), [TESTES](Docs/TESTES.md), [configuração técnica](Docs/CONFIGURACAO.md) e [demonstração](Docs/DEMONSTRACAO.md). Testes de serviço offline, reconhecimento por microfone e avaliação de qualidade são resultados distintos.
 
-- `Sources/App`: Activity e composição da tela nativa; insets para Android 15.
-- `Sources/Domain`: direção, estados, origem, qualidades, medição v1 e contratos dos serviços locais.
-- `Sources/Features/Conversation`: coordenação cancelável, timeouts e proteção por geração.
-- `Sources/Services/Speech`: Vosk local e importação atômica/validada dos modelos.
-- `Sources/Services/Audio`: captura PCM, WAV, importação e replay com foco de áudio.
-- `Sources/Services/Translation`: ML Kit, preparação explícita; tradução não baixa modelos.
-- `Sources/Services/Synthesis`: TTS com vozes instaladas sem exigência de rede, callbacks e foco de áudio.
-- `Sources/Persistence`: carga, atualização e exportação JSON com todas as propriedades e `null` explícitos.
-- `Resources`, `Configuration`, `Tests`, `Docs`: recursos pequenos, build, testes e roteiros comuns.
-
-Não há cópia divergente do projeto na pasta do novo chat. Modelos, caches de ferramentas e áudios não devem ser versionados. Não há proposta de alteração ao contrato shared neste ciclo.
+A frente iOS e os arquivos shared foram preservados. O código atualizado está nesta pasta de trabalho; a cópia original em Downloads não foi alterada.

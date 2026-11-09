@@ -1,0 +1,106 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.11.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+> Task :preBuild UP-TO-DATE
+> Task :preDebugBuild UP-TO-DATE
+> Task :mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :checkDebugAarMetadata UP-TO-DATE
+> Task :generateDebugResValues UP-TO-DATE
+> Task :mapDebugSourceSetPaths UP-TO-DATE
+> Task :generateDebugResources UP-TO-DATE
+> Task :mergeDebugResources UP-TO-DATE
+> Task :packageDebugResources UP-TO-DATE
+> Task :parseDebugLocalResources UP-TO-DATE
+> Task :createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :extractDeepLinksDebug UP-TO-DATE
+> Task :processDebugMainManifest UP-TO-DATE
+> Task :processDebugManifest UP-TO-DATE
+> Task :processDebugManifestForPackage UP-TO-DATE
+> Task :processDebugResources UP-TO-DATE
+> Task :javaPreCompileDebug UP-TO-DATE
+> Task :mergeDebugShaders UP-TO-DATE
+> Task :compileDebugShaders NO-SOURCE
+> Task :generateDebugAssets UP-TO-DATE
+> Task :mergeDebugAssets UP-TO-DATE
+> Task :compressDebugAssets UP-TO-DATE
+> Task :desugarDebugFileDependencies UP-TO-DATE
+> Task :checkDebugDuplicateClasses UP-TO-DATE
+> Task :mergeExtDexDebug UP-TO-DATE
+> Task :mergeLibDexDebug UP-TO-DATE
+> Task :mergeDebugJniLibFolders UP-TO-DATE
+> Task :mergeDebugNativeLibs UP-TO-DATE
+> Task :stripDebugDebugSymbols UP-TO-DATE
+> Task :validateSigningDebug UP-TO-DATE
+> Task :writeDebugAppMetadata UP-TO-DATE
+> Task :writeDebugSigningConfigVersions UP-TO-DATE
+> Task :preDebugUnitTestBuild UP-TO-DATE
+> Task :javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :preDebugAndroidTestBuild SKIPPED
+> Task :generateDebugAndroidTestResValues UP-TO-DATE
+> Task :extractProguardFiles UP-TO-DATE
+> Task :checkDebugAndroidTestAarMetadata UP-TO-DATE
+> Task :mapDebugAndroidTestSourceSetPaths UP-TO-DATE
+> Task :generateDebugAndroidTestResources UP-TO-DATE
+> Task :mergeDebugAndroidTestResources UP-TO-DATE
+> Task :processDebugAndroidTestManifest UP-TO-DATE
+> Task :processDebugAndroidTestResources UP-TO-DATE
+> Task :javaPreCompileDebugAndroidTest UP-TO-DATE
+> Task :mergeDebugAndroidTestShaders UP-TO-DATE
+> Task :compileDebugAndroidTestShaders NO-SOURCE
+> Task :generateDebugAndroidTestAssets UP-TO-DATE
+> Task :mergeDebugAndroidTestAssets UP-TO-DATE
+> Task :compressDebugAndroidTestAssets UP-TO-DATE
+> Task :desugarDebugAndroidTestFileDependencies UP-TO-DATE
+> Task :checkDebugAndroidTestDuplicateClasses UP-TO-DATE
+> Task :mergeExtDexDebugAndroidTest UP-TO-DATE
+> Task :mergeLibDexDebugAndroidTest UP-TO-DATE
+> Task :mergeDebugAndroidTestJniLibFolders UP-TO-DATE
+> Task :mergeDebugAndroidTestNativeLibs NO-SOURCE
+> Task :stripDebugAndroidTestDebugSymbols NO-SOURCE
+> Task :validateSigningDebugAndroidTest UP-TO-DATE
+> Task :writeDebugAndroidTestSigningConfigVersions UP-TO-DATE
+> Task :compileDebugKotlin
+> Task :compileDebugJavaWithJavac NO-SOURCE
+> Task :dexBuilderDebug
+> Task :mergeDebugGlobalSynthetics UP-TO-DATE
+> Task :processDebugJavaRes UP-TO-DATE
+> Task :bundleDebugClassesToCompileJar
+> Task :bundleDebugClassesToRuntimeJar
+> Task :generateDebugLintReportModel
+> Task :mergeProjectDexDebug
+> Task :mergeDebugJavaResource
+> Task :generateDebugAndroidTestLintModel
+> Task :generateDebugUnitTestLintModel
+> Task :packageDebug
+> Task :createDebugApkListingFileRedirect UP-TO-DATE
+> Task :assembleDebug
+> Task :compileDebugUnitTestKotlin
+> Task :compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :processDebugUnitTestJavaRes UP-TO-DATE
+> Task :compileDebugAndroidTestKotlin
+> Task :testDebugUnitTest
+> Task :compileDebugAndroidTestJavaWithJavac NO-SOURCE
+> Task :dexBuilderDebugAndroidTest UP-TO-DATE
+> Task :mergeDebugAndroidTestGlobalSynthetics UP-TO-DATE
+> Task :processDebugAndroidTestJavaRes UP-TO-DATE
+> Task :mergeDebugAndroidTestJavaResource UP-TO-DATE
+> Task :mergeProjectDexDebugAndroidTest UP-TO-DATE
+> Task :packageDebugAndroidTest UP-TO-DATE
+> Task :createDebugAndroidTestApkListingFileRedirect UP-TO-DATE
+> Task :assembleDebugAndroidTest UP-TO-DATE
+> Task :lintAnalyzeDebugAndroidTest
+> Task :lintAnalyzeDebugUnitTest
+> Task :lintAnalyzeDebug
+
+> Task :lintReportDebug
+Wrote HTML report to file:///C:/Users/thiag/OneDrive/Documentos/ChatGPT/Aplicativo%20tradutor%20RA/android/build/reports/lint-results-debug.html
+
+> Task :lintDebug
+
+BUILD SUCCESSFUL in 35s
+76 actionable tasks: 18 executed, 58 up-to-date
+APK: C:\Users\thiag\OneDrive\Documentos\ChatGPT\Aplicativo tradutor RA\android\build\outputs\apk\debug\TradutorOfflineAndroid-debug.apk
+
+Algorithm       Hash                                                                   Path
+---------       ----                                                                   ----
+SHA256          CE381436557AF952613126AE85C430F975DAA01C22FCB2CA2667CAAF4D72BD4C       C:\Users\thiag\OneDrive\Document…

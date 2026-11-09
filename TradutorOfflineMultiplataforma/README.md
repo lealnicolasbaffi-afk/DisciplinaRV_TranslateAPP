@@ -1,11 +1,11 @@
-# Tradutor Offline — duas frentes
+# Tradutor Offline — Android e iOS
 
 - `ios/`: SwiftUI para iPhone 14, a partir do protótipo existente.
-- `android/`: Kotlin nativo, aparelho de teste ainda a definir.
+- `android/`: Kotlin nativo, versão 0.2.0; build Android e testes JVM aprovados. Aparelho de teste Samsung SM-A546E, Android 16/API 36.
 - `shared/`: especificação única, contrato de medições e mesmas frases de teste.
 
-As duas frentes têm a mesma estrutura modular e o mesmo fluxo de uso. A implementação dos modelos é específica do sistema operacional. As tarefas dedicadas devem manter seu andamento em `Docs/STATUS.md`.
+O Android usa Vosk para reconhecimento, ML Kit para tradução e vozes locais do Android. Consulte [instalação e comandos](android/README.md), [status](android/Docs/STATUS.md) e [evidências](android/Docs/TESTES.md). O fluxo é por turnos de até 20 segundos.
 
 Consulte [a especificação comum](shared/ESPECIFICACAO.md). A versão anterior de iPhone permanece em `../TradutorOffline` e `../TradutorOffline-iPhone14.zip`.
 
-Nenhuma versão foi certificada offline em aparelho físico. O projeto iOS precisa de Mac/Xcode; o Android precisa de SDK/Gradle e de um aparelho para validação final.
+O trabalho desta entrega está na pasta Android. A frente iOS e o contrato compartilhado foram preservados. O projeto iOS precisa de Mac/Xcode e de validação própria.

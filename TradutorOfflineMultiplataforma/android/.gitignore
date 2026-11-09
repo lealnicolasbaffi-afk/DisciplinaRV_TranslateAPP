@@ -1,0 +1,12 @@
+.gradle/
+.kotlin/
+.idea/
+build/
+local.properties
+*.iml
+work/
+captures/
+*.keystore
+*.jks
+vosk-model-*.zip
+models/

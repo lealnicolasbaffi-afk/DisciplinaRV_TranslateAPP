@@ -1,0 +1,16 @@
+Performing Streamed Install
+Success
+Performing Streamed Install
+Success
+
+br.edu.tradutoroffline.tests.OnDeviceValidation:PT: preparado localmente, 53552717 bytes (arquivos extraídos) · EN: preparado localmente, 70898967 bytes (arquivos extraídos)
+Vozes locais declaradas pelo motor: pt-BR (pt-BR-language); en-US (en-US-language). Valide em modo avião.
+pt-BR → en-US: Bom dia. Onde fica a estação? => Good morning. Where is the station?; tradução 318.937576 ms
+pt-BR → en-US: síntese iniciou e terminou sem rede ativa.
+en-US → pt-BR: The station is two blocks away. => A estação fica a dois quarteirões de distância.; tradução 216.421038 ms
+en-US → pt-BR: síntese iniciou e terminou sem rede ativa.
+.
+
+Time: 11.837
+
+OK (1 test)

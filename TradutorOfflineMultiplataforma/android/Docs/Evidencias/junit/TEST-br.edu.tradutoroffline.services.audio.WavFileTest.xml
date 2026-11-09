@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.edu.tradutoroffline.services.audio.WavFileTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-09T21:55:01" hostname="DESKTOP-0OEIQOG" time="0.096">
+  <properties/>
+  <testcase name="acceptsDataBeforeFormatAndMetadataAfterData" classname="br.edu.tradutoroffline.services.audio.WavFileTest" time="0.021"/>
+  <testcase name="skipsPaddedMetadataRatherThanAssuming44ByteHeader" classname="br.edu.tradutoroffline.services.audio.WavFileTest" time="0.003"/>
+  <testcase name="rejectsTruncatedFileAndForgedRiffLength" classname="br.edu.tradutoroffline.services.audio.WavFileTest" time="0.007"/>
+  <testcase name="recordedHeaderHasExpectedPcmRateAndSizes" classname="br.edu.tradutoroffline.services.audio.WavFileTest" time="0.004"/>
+  <testcase name="rejectsInconsistentByteRateAndBlockAlignment" classname="br.edu.tradutoroffline.services.audio.WavFileTest" time="0.025"/>
+  <testcase name="rejectsMissingFormatOrDataAndNonRiffFiles" classname="br.edu.tradutoroffline.services.audio.WavFileTest" time="0.006"/>
+  <testcase name="rejectsStereoFloatDifferentRateAndBitDepthWithoutConversion" classname="br.edu.tradutoroffline.services.audio.WavFileTest" time="0.008"/>
+  <testcase name="rejectsEmptyOddAndDuplicatedDataChunks" classname="br.edu.tradutoroffline.services.audio.WavFileTest" time="0.007"/>
+  <testcase name="acceptsStandardOneSecondPcm" classname="br.edu.tradutoroffline.services.audio.WavFileTest" time="0.004"/>
+  <testcase name="accepts20SecondsButRejectsOneSampleBeyondLimit" classname="br.edu.tradutoroffline.services.audio.WavFileTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
