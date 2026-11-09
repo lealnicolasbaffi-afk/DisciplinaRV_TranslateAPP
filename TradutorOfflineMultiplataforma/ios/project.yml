@@ -1,0 +1,51 @@
+name: TradutorOffline
+options:
+  bundleIdPrefix: com.prototype
+  deploymentTarget:
+    iOS: '18.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+configFiles:
+  Debug: Configuration/Debug.xcconfig
+  Release: Configuration/Release.xcconfig
+targets:
+  TradutorOffline:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: Resources
+        buildPhase: resources
+    info:
+      path: Configuration/Info.plist
+      properties:
+        CFBundleDisplayName: Tradutor Offline
+        UILaunchScreen: {}
+        NSMicrophoneUsageDescription: Gravar falas curtas para tradução local.
+        NSSpeechRecognitionUsageDescription: Transcrever suas falas no próprio aparelho.
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.prototype.TradutorOffline
+        GENERATE_INFOPLIST_FILE: NO
+  TradutorOfflineTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests/Conversation]
+    dependencies:
+      - target: TradutorOffline
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.prototype.TradutorOfflineTests
+schemes:
+  TradutorOffline:
+    build:
+      targets:
+        TradutorOffline: all
+        TradutorOfflineTests: [test]
+    test:
+      targets: [TradutorOfflineTests]

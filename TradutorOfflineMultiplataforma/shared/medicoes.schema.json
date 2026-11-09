@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tradutor offline — medições v1",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "id",
+      "date",
+      "platform",
+      "device",
+      "system",
+      "direction",
+      "input",
+      "output",
+      "rawInput",
+      "edited",
+      "origin",
+      "airplaneModeConfirmed",
+      "failure",
+      "notes",
+      "transcriptionMS",
+      "textMS",
+      "audioStartMS",
+      "translationMS",
+      "transcriptionQuality",
+      "translationQuality"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "date": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "platform": {
+        "enum": [
+          "ios",
+          "android"
+        ]
+      },
+      "device": {
+        "type": "string"
+      },
+      "system": {
+        "type": "string"
+      },
+      "direction": {
+        "enum": [
+          "pt-BR → en-US",
+          "en-US → pt-BR"
+        ]
+      },
+      "input": {
+        "type": "string"
+      },
+      "output": {
+        "type": "string"
+      },
+      "rawInput": {
+        "type": "string"
+      },
+      "edited": {
+        "type": "boolean"
+      },
+      "origin": {
+        "enum": [
+          "microfone",
+          "arquivo pré-gravado",
+          "texto digitado"
+        ]
+      },
+      "airplaneModeConfirmed": {
+        "type": "boolean"
+      },
+      "failure": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "notes": {
+        "type": "string"
+      },
+      "transcriptionMS": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0
+      },
+      "textMS": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0
+      },
+      "audioStartMS": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0
+      },
+      "translationMS": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0
+      },
+      "transcriptionQuality": {
+        "enum": [
+          "não avaliada",
+          "correta",
+          "compreensível com erros",
+          "incorreta"
+        ]
+      },
+      "translationQuality": {
+        "enum": [
+          "não avaliada",
+          "correta",
+          "compreensível com erros",
+          "incorreta"
+        ]
+      }
+    },
+    "additionalProperties": false
+  }
+}
