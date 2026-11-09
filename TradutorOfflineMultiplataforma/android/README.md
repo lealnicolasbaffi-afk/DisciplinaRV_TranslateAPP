@@ -12,6 +12,13 @@ Aplicativo nativo Kotlin, português brasileiro ↔ inglês americano, por turno
 
 **Ouvir original**, correção da transcrição, **Traduzir e falar** e replay estão disponíveis. **Nova rodada** começa outra tentativa. O WAV de reserva deve ser PCM16, mono, 16 kHz, até 20 segundos.
 
+## Tradução ao vivo pela câmera
+
+Use **Traduzir com a câmera** na tela inicial, autorize a câmera e escolha a direção.
+O OCR local vem incluído no APK e a tradução aparece sobre as regiões reconhecidas.
+Se necessário, use **Preparar tradução (com Wi-Fi)**. Essa função não exige Vosk
+nem vozes. Veja [instruções, limites e testes pendentes](Docs/CAMERA.md).
+
 ## Build no Windows
 
 Requisitos: JDK completo 17, SDK Platform 35 e Build Tools 35.0.0. Neste computador o SDK fica em `android/work/sdk`, e o script localiza o JDK do Unity já instalado. Caches e ferramentas ficam fora do código versionado.

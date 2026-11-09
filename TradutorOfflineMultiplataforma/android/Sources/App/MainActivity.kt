@@ -51,6 +51,7 @@ class MainActivity : Activity() {
     private lateinit var fresh: Button
     private lateinit var evaluate: Button
     private lateinit var export: Button
+    private lateinit var cameraTranslation: Button
     private var rendering = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,6 +101,9 @@ class MainActivity : Activity() {
 
         text("Tradutor Offline", 26f)
         text("Português brasileiro ↔ inglês americano · turnos de até 20 s")
+        cameraTranslation = button("Traduzir com a câmera") {
+            if (!controller.busy) startActivity(Intent(this, br.edu.tradutoroffline.features.camera.CameraTranslationActivity::class.java))
+        }
         text("Direção", 20f)
         direction = spinner(Direction.entries.map { it.label }) { controller.selectDirection(Direction.entries[it]) }
         direction.contentDescription = "Direção da tradução"
@@ -212,6 +216,7 @@ class MainActivity : Activity() {
             metrics.text = "${controller.count} rodadas salvas no aparelho\nOrigem: ${m?.origin ?: "nenhuma"} · editada: ${m?.edited ?: false}\nParar → transcrição: ${ms(m?.transcriptionMS)}\nParar → texto: ${ms(m?.textMS)}\nParar → início de síntese: ${ms(m?.audioStartMS)}\nChamada de tradução: ${ms(m?.translationMS)}"
             raw.text = "Transcrição/texto original para avaliação: ${m?.rawInput.orEmpty()}"
             direction.isEnabled = !controller.busy
+            cameraTranslation.isEnabled = !controller.busy
             prepare.isEnabled = !controller.busy
             verify.isEnabled = !controller.busy
             voices.isEnabled = !controller.busy

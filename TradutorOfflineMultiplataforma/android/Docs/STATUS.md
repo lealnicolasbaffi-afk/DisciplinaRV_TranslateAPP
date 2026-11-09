@@ -1,5 +1,26 @@
 # Android — versão 0.2.0
 
+## Atualização de Hudson: câmera e OCR local — 09/11/2026
+
+Adicionada tradução ao vivo pela câmera traseira com CameraX 1.4.2 e OCR latino
+ML Kit 16.0.1 incluído no APK. A tela permite trocar PT/EN, preparar tradução
+independentemente de Vosk/TTS e desenhar traduções nas regiões reconhecidas.
+Inclui cache limitado, descarte de resultados antigos e liberação da câmera ao sair.
+
+Antes da integração com a versão 0.2.0: build nativo, 23 testes JVM e lint passaram;
+o APK foi instalado no Samsung SM-S926B / Android 16, a tela inicial abriu e o
+botão da câmera foi confirmado. O aparelho bloqueou antes do ensaio de câmera:
+preview, OCR físico, alinhamento e tradução sobre imagem permanecem pendentes.
+O resultado no SM-S926B é separado das evidências no SM-A546E descritas abaixo.
+Consulte [CAMERA.md](CAMERA.md) para o roteiro físico.
+
+Após integrar com a versão 0.2.0, o build do app e da instrumentação e lint
+passaram. Dos 29 testes JVM, 27 passaram e 2 foram ignorados por falta dos ZIPs
+oficiais de teste neste ambiente; não houve falhas. A instrumentação não foi
+executada neste ciclo. Detalhes em [TESTES.md](TESTES.md).
+
+## Estado da versão 0.2.0 recebida do repositório
+
 Atualizado em 09/11/2026. Código ativo nesta pasta de trabalho. A cópia original em Downloads, a frente iOS e o contrato shared foram preservados.
 
 ## Entregue

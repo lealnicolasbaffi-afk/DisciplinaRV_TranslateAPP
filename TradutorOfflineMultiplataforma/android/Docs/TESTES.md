@@ -1,5 +1,25 @@
 # Testes e evidências — Android 0.2.0
 
+## Câmera: verificação anterior à integração — 09/11/2026
+
+**Verificação após integrar com a versão 0.2.0:**
+`Configuration/check.sh --write-locks assembleDebugAndroidTest` concluiu com
+BUILD SUCCESSFUL: APK principal e APK de instrumentação compilados, lint sem
+erros e 29 testes JVM contabilizados, sendo 27 aprovados e 2 ignorados pela
+ausência dos ZIPs oficiais em `work/models`; zero falhas/erros. Os testes
+instrumentados foram compilados, mas não executados neste ciclo. Os registros
+do SM-A546E abaixo são evidências anteriores preservadas, não uma nova execução.
+
+Na implementação da câmera anterior à integração com a versão 0.2.0,
+`Configuration/check.sh --write-locks` passou: assembleDebug, 23 testes JVM de
+regressão sem falhas e lintDebug. A resolução de dependências também passou.
+APK instalado no Samsung SM-S926B / Android 16; Activity principal abriu e botão
+confirmado via UI. O aparelho bloqueou antes do teste interativo de câmera.
+Não há novo teste automatizado de câmera/OCR. Preview, OCR, alinhamento e modo
+avião dessa função ainda exigem o [roteiro físico](CAMERA.md).
+
+## Evidências da versão 0.2.0 recebida do repositório
+
 Execuções em 09/11/2026 no código desta pasta. Aparelho físico: Samsung SM-A546E, Android 16/API 36, arm64-v8a.
 
 ## Build Android real
