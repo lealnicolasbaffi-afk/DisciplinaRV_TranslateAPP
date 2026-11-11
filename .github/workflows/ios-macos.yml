@@ -1,0 +1,76 @@
+name: iOS no macOS remoto
+
+on:
+  pull_request:
+    paths:
+      - 'TradutorOfflineMultiplataforma/ios/**'
+      - '.github/workflows/ios-macos.yml'
+  workflow_dispatch:
+    inputs:
+      export_adhoc:
+        description: 'Gerar IPA Ad Hoc assinado (requer configuração Apple)'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+        working-directory: TradutorOfflineMultiplataforma/ios
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Instalar XcodeGen e identificar ferramentas
+        run: |
+          brew install xcodegen
+          xcodegen --version
+          xcodebuild -version
+      - name: Gerar projeto e compilar sem assinatura
+        run: |
+          xcodegen generate
+          xcodebuild -project TradutorOffline.xcodeproj -scheme TradutorOffline \
+            -configuration Debug -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/tradutor-derived" \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: Empacotar IPA sem assinatura
+        run: |
+          mkdir -p "$RUNNER_TEMP/tradutor-unsigned/Payload"
+          ditto "$RUNNER_TEMP/tradutor-derived/Build/Products/Debug-iphoneos/TradutorOffline.app" \
+            "$RUNNER_TEMP/tradutor-unsigned/Payload/TradutorOffline.app"
+          cd "$RUNNER_TEMP/tradutor-unsigned"
+          ditto -c -k --keepParent Payload TradutorOffline-sem-assinatura.ipa
+      - name: Disponibilizar IPA sem assinatura
+        uses: actions/upload-artifact@v4
+        with:
+          name: TradutorOffline-sem-assinatura
+          path: ${{ runner.temp }}/tradutor-unsigned/TradutorOffline-sem-assinatura.ipa
+          if-no-files-found: error
+          retention-days: 7
+      - name: Testar núcleo Foundation
+        run: swift test
+      - name: Assinar e exportar IPA Ad Hoc
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.export_adhoc }}
+        env:
+          IOS_TEAM_ID: ${{ vars.IOS_TEAM_ID }}
+          IOS_BUNDLE_ID: ${{ vars.IOS_BUNDLE_ID }}
+          IOS_CERTIFICATE_P12_BASE64: ${{ secrets.IOS_CERTIFICATE_P12_BASE64 }}
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          IOS_KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: bash Scripts/exportar-adhoc-ci.sh
+      - name: Disponibilizar IPA assinado
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.export_adhoc }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: TradutorOffline-adhoc
+          path: ${{ runner.temp }}/tradutor-export/*.ipa
+          if-no-files-found: error
+          retention-days: 7
