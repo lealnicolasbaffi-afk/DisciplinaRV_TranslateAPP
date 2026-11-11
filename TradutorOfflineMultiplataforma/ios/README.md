@@ -2,11 +2,13 @@
 
 Protótipo acadêmico Swift/SwiftUI para **iPhone 14 com iOS 18 ou posterior**, português brasileiro ↔ inglês americano, conversa por turnos de até 20 segundos. Depois de Parar, o fluxo transcreve, traduz e reproduz automaticamente. Permite ouvir o original, corrigir, repetir, importar áudio local e avaliar/exportar medições. Speech exige reconhecimento no aparelho; Translation e síntese usam recursos do iOS, preparados antes da demonstração.
 
-**Estado em 09/11/2026:** refatoração e verificações estáticas feitas em Linux. **Nenhuma compilação Swift/iOS, instalação ou tentativa física foi executada: 0/36 tentativas planejadas.** O funcionamento offline dos três estágios precisa ser validado no iPhone. Não há resultados de latência, qualidade, armazenamento ou memória.
+**Estado em 10/11/2026:** câmera com OCR e tradução implementada em caráter experimental, e fluxo de compilação remota preparado no Linux. **Ainda não há compilação iOS, instalação ou testes físicos confirmados: 0/36 tentativas planejadas.** O funcionamento offline, a câmera e o alinhamento das caixas precisam ser validados no iPhone. Não há resultados de latência, qualidade, armazenamento ou memória.
 
 Esta pasta é a fonte do projeto iOS. O contrato é `../shared/ESPECIFICACAO.md`, o schema é `../shared/medicoes.schema.json` e as 12 frases são idênticas às de `../shared/Tests/frases.csv`. A frente Android permanece separada; o alinhamento aqui é por módulos, fluxo, rótulos e contrato de dados.
 
 ## Gerar e compilar no Mac
+
+Sem Mac próprio, consulte o [guia de compilação remota a partir do Linux](Docs/BUILD_REMOTO.md), que descreve GitHub Actions e os requisitos de assinatura para um IPA Ad Hoc.
 
 Instale Xcode 16 ou posterior com SDK iOS 18+, selecione-o em `xcode-select` e aceite os componentes solicitados. Na pasta `ios` deste projeto:
 
@@ -32,6 +34,8 @@ Veja [CONFIGURACAO](Docs/CONFIGURACAO.md) para permissões, pacotes, vozes e con
 4. Em **3. Tradução**, veja o resultado e use **Reproduzir tradução** para ouvi-lo novamente. A repetição não deve substituir a primeira latência registrada.
 5. Em **Medições**, avalie a transcrição original (`rawInput`) e a tradução, registre a frase/repetição/condições e toque em **Salvar avaliação**. Use **Exportar medições JSON** para compartilhar o arquivo persistido. Erros de gravação/exportação precisam ser resolvidos antes de usar o arquivo como registro atualizado.
 
+Para a câmera, toque em **Traduzir com a câmera**, autorize o acesso e prepare a tradução. Aponte para texto impresso e use o botão de direção para alternar entre inglês e português. O reconhecimento usa Vision no aparelho; a tradução usa os recursos do iOS. A visualização e a posição das caixas ainda precisam de validação física. O código não grava os quadros da câmera.
+
 Use **Cancelar operação** para interromper uma operação e tente novamente. A troca de direção e uma nova rodada invalidam o trabalho anterior; callbacks antigos não podem atualizar a rodada atual. A confirmação de modo avião é uma declaração manual. Para o ensaio offline, ative modo avião, desligue Wi-Fi nos Ajustes e reabra o app sem rede.
 
 ## Estrutura
@@ -39,6 +43,7 @@ Use **Cancelar operação** para interromper uma operação e tente novamente. A
 - `Sources/App`: inicialização e composição dos serviços.
 - `Sources/Domain`: direção, estados, rodada/medições e contratos dos serviços.
 - `Sources/Features/Conversation`: tela e coordenação da conversa.
+- `Sources/Features/Camera`: captura traseira, reconhecimento de texto e sobreposição experimental.
 - `Sources/Services/{Speech,Translation,Synthesis,Audio}`: adaptadores Apple, captura e reprodução.
 - `Sources/Persistence`: JSON comum, leitura legada e proteção dos arquivos anteriores.
 - `Configuration`: ajustes de build; `project.yml`: geração reproduzível do projeto.

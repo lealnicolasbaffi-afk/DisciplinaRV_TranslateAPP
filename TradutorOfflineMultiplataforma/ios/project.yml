@@ -24,6 +24,7 @@ targets:
         UILaunchScreen: {}
         NSMicrophoneUsageDescription: Gravar falas curtas para tradução local.
         NSSpeechRecognitionUsageDescription: Transcrever suas falas no próprio aparelho.
+        NSCameraUsageDescription: Reconhecer e traduzir textos mostrados à câmera no próprio aparelho.
         UIFileSharingEnabled: true
         LSSupportsOpeningDocumentsInPlace: true
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]

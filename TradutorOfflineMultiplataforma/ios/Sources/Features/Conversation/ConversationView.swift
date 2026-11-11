@@ -12,6 +12,8 @@ struct ConversationView: View {
         NavigationStack {
             Form {
                 Section("Conversa por turnos • iPhone • PT ↔ EN") {
+                    NavigationLink("Traduzir com a câmera") { CameraTranslationView() }
+                        .disabled(!model.canBegin)
                     Toggle("Inglês → Português", isOn: Binding(
                         get: { model.direction == .englishToPortuguese },
                         set: { model.setDirection($0 ? .englishToPortuguese : .portugueseToEnglish) }
