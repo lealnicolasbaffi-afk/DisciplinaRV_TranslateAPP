@@ -2,6 +2,8 @@
 
 Tradutor de voz português brasileiro ↔ inglês americano, com foco inicial no Android e uma frente iOS independente.
 
+A frente [iOS](TradutorOfflineMultiplataforma/ios/README.md) recebeu em código a câmera com OCR Vision, sobreposição, acompanhamento temporal, congelamento e interface com SF Symbols. **Esta portabilidade não foi compilada, instalada ou testada**; a validação será feita por outro responsável no Mac/iPhone. Consulte o [roteiro iOS](TradutorOfflineMultiplataforma/ios/Docs/CAMERA.md).
+
 O projeto fica em [TradutorOfflineMultiplataforma](TradutorOfflineMultiplataforma). A versão Android 0.2.0 inclui reconhecimento Vosk, tradução ML Kit e vozes locais, com preparação dos recursos para uso sem internet. O fluxo é por turnos de até 20 segundos.
 
 - [Instalação, build e uso do Android](TradutorOfflineMultiplataforma/android/README.md)

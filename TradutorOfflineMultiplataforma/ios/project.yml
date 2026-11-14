@@ -22,6 +22,7 @@ targets:
       properties:
         CFBundleDisplayName: Tradutor Offline
         UILaunchScreen: {}
+        NSCameraUsageDescription: Ler textos pela câmera e exibir traduções no aparelho, sem salvar fotos.
         NSMicrophoneUsageDescription: Gravar falas curtas para tradução local.
         NSSpeechRecognitionUsageDescription: Transcrever suas falas no próprio aparelho.
         UIFileSharingEnabled: true

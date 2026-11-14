@@ -7,7 +7,7 @@ let package = Package(
     platforms: [.iOS("18.0"), .macOS(.v13)],
     products: [.library(name: "TradutorCore", targets: ["TradutorCore"])],
     targets: [
-        .target(name: "TradutorCore", path: "Sources", exclude: ["App", "Features", "Services", "Domain/ServiceContracts.swift"],
+        .target(name: "TradutorCore", path: "Sources", exclude: ["App", "Features", "Services", "UI", "Domain/ServiceContracts.swift"],
                 sources: ["Domain", "Persistence"]),
         .testTarget(name: "TradutorCoreTests", dependencies: ["TradutorCore"], path: "Tests/Unit")
     ]

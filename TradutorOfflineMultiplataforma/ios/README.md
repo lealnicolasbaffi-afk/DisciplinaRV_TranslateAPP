@@ -2,7 +2,7 @@
 
 Protótipo acadêmico Swift/SwiftUI para **iPhone 14 com iOS 18 ou posterior**, português brasileiro ↔ inglês americano, conversa por turnos de até 20 segundos. Depois de Parar, o fluxo transcreve, traduz e reproduz automaticamente. Permite ouvir o original, corrigir, repetir, importar áudio local e avaliar/exportar medições. Speech exige reconhecimento no aparelho; Translation e síntese usam recursos do iOS, preparados antes da demonstração.
 
-**Estado em 09/11/2026:** refatoração e verificações estáticas feitas em Linux. **Nenhuma compilação Swift/iOS, instalação ou tentativa física foi executada: 0/36 tentativas planejadas.** O funcionamento offline dos três estágios precisa ser validado no iPhone. Não há resultados de latência, qualidade, armazenamento ou memória.
+**Estado em 13/11/2026:** implementados em código o redesenho com ícones nativos, configurações em janela própria e câmera com OCR, sobreposição em perspectiva, acompanhamento temporal e imagem congelada. **Não houve compilação Swift/iOS, execução de testes ou instalação neste ciclo**, por solicitação do responsável; outra pessoa fará a validação no Mac/iPhone. As verificações históricas de Linux não certificam estas mudanças. O funcionamento offline e o alinhamento precisam ser confirmados no aparelho. Roteiro: [Câmera: arquitetura, uso e validação](Docs/CAMERA.md).
 
 Esta pasta é a fonte do projeto iOS. O contrato é `../shared/ESPECIFICACAO.md`, o schema é `../shared/medicoes.schema.json` e as 12 frases são idênticas às de `../shared/Tests/frases.csv`. A frente Android permanece separada; o alinhamento aqui é por módulos, fluxo, rótulos e contrato de dados.
 
@@ -26,19 +26,22 @@ Veja [CONFIGURACAO](Docs/CONFIGURACAO.md) para permissões, pacotes, vozes e con
 
 ## Usar a tela
 
-1. Escolha a direção e toque em **Preparar idiomas (com internet)**. Preparação concluída só é anunciada quando o par está instalado; solicitar o download não prova sua conclusão.
-2. Em **1. Falar**, use **Gravar fala** → **Parar e traduzir**. O limite encerra a captura em 20 segundos. **Ouvir gravação** reproduz o original; **Importar áudio de reserva** usa um arquivo local.
-3. Em **2. Transcrição • pode editar**, revise o texto ou inicie **Nova rodada (texto digitado)** para um texto independente. Corrigir a rodada existente preserva a origem e a referência de tempo e marca `edited`.
-4. Em **3. Tradução**, veja o resultado e use **Reproduzir tradução** para ouvi-lo novamente. A repetição não deve substituir a primeira latência registrada.
-5. Em **Medições**, avalie a transcrição original (`rawInput`) e a tradução, registre a frase/repetição/condições e toque em **Salvar avaliação**. Use **Exportar medições JSON** para compartilhar o arquivo persistido. Erros de gravação/exportação precisam ser resolvidos antes de usar o arquivo como registro atualizado.
+1. Toque no ícone de **configurações** para abrir “Idiomas e vozes”. Prepare os idiomas com internet; o download precisa terminar antes do ensaio offline.
+2. Inverta a direção no controle Português ↔ Inglês. O **microfone** grava por até 20 segundos; o **stop** encerra e inicia transcrição, tradução e voz. A **pasta** importa áudio local e o **alto-falante junto à entrada** reproduz o original.
+3. Revise o texto no cartão de entrada e use **Traduzir**. Editar mantém a origem e o instante da rodada. O **+** inicia uma nova rodada de texto digitado.
+4. Leia o cartão de tradução e use seu **alto-falante** para reproduzir. O replay preserva a primeira latência.
+5. Em **Avaliação**, registre qualidade, condições e a declaração manual de modo avião; salve e exporte o JSON. Avisos de persistência precisam ser resolvidos antes de confiar na exportação.
+6. O ícone de **câmera** abre o OCR com tradução sobre a imagem. O **download** prepara somente os idiomas de tradução; **pausa/play** congela/retoma. Toque para focar e use pinça para zoom. Consulte [CAMERA.md](Docs/CAMERA.md) para os limites.
 
-Use **Cancelar operação** para interromper uma operação e tente novamente. A troca de direção e uma nova rodada invalidam o trabalho anterior; callbacks antigos não podem atualizar a rodada atual. A confirmação de modo avião é uma declaração manual. Para o ensaio offline, ative modo avião, desligue Wi-Fi nos Ajustes e reabra o app sem rede.
+Os ícones usam SF Symbols com rótulos para acessibilidade e centralização em áreas de toque explícitas. A câmera usa tema escuro, permanece em retrato e descarta a captura ao sair. As configurações e a avaliação usam janelas separadas; os serviços de fala e o contrato de medições existentes foram preservados. A aparência e o VoiceOver ainda não foram verificados no iPhone.
 
 ## Estrutura
 
 - `Sources/App`: inicialização e composição dos serviços.
 - `Sources/Domain`: direção, estados, rodada/medições e contratos dos serviços.
 - `Sources/Features/Conversation`: tela e coordenação da conversa.
+- `Sources/Features/Camera`: captura AVFoundation, OCR Vision, rastreador, projeção e coordenação da tradução visual.
+- `Sources/UI`: estilo comum e botões com SF Symbols.
 - `Sources/Services/{Speech,Translation,Synthesis,Audio}`: adaptadores Apple, captura e reprodução.
 - `Sources/Persistence`: JSON comum, leitura legada e proteção dos arquivos anteriores.
 - `Configuration`: ajustes de build; `project.yml`: geração reproduzível do projeto.
@@ -46,7 +49,7 @@ Use **Cancelar operação** para interromper uma operação e tente novamente. A
 - `Resources`: orientação para recursos e reserva; modelos do sistema não acompanham o código.
 - `Docs`: [status](Docs/STATUS.md), [configuração](Docs/CONFIGURACAO.md), [testes](Docs/TESTES.md) e [demonstração](Docs/DEMONSTRACAO.md).
 
-## Verificações disponíveis em Linux
+## Verificações disponíveis em Linux (não executadas nesta atualização)
 
 ```sh
 python3 Tests/validate_contract.py --self-test

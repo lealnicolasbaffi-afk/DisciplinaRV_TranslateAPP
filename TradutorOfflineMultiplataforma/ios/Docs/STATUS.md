@@ -1,10 +1,25 @@
-# Status — iOS — 09/11/2026
+# Status — iOS
+
+## Portabilidade das melhorias Android — 13/11/2026
+
+Implementação em código, sem compilação, execução de testes ou instalação neste ciclo, conforme solicitação. A validação será realizada por outra pessoa em Mac/iPhone. Nenhuma evidência Android comprova funcionamento iOS.
+
+- Interface SwiftUI com cartões, SF Symbols centralizados, microfone/stop, pasta, alto-falantes, nova rodada e acesso à câmera. Configurações em sheet própria e avaliação separada.
+- Câmera traseira AVFoundation, retrato, preview com descarte de atrasados e OCR Vision em fila independente. Foco por toque, pinça e desligamento ao sair/entrar no fundo.
+- Confirmação temporal, associação de regiões, suavização adaptativa e expiração visual, com limites de memória e invalidação de resultados antigos.
+- Projeção por homografia no quadrilátero reconhecido, ajuste de texto e cache de layout; imagem congelada reconhecida sobre o mesmo CGImage exibido.
+- Tradução Apple reutilizada, preparo explícito, consulta de idiomas instalados, cache limitado e watchdog de operações. Sem alteração no contrato shared ou nas medições de conversa.
+- Permissão de câmera adicionada ao project.yml; diretório UI excluído do package Foundation. Regenerar o projeto antes do build.
+
+O agrupamento de texto do Vision, a resolução e os serviços diferem do Android; não se afirma equivalência de qualidade ou desempenho. Alinhamento, orientação dos buffers, ciclo de vida, APIs e acessibilidade exigem compilação e ensaio físico. Roteiro de entrega em [CAMERA.md](CAMERA.md).
+
+## Histórico — 09/11/2026
 
 Código refatorado na pasta iOS existente, alinhado com `../../shared/ESPECIFICACAO.md` e `../../shared/medicoes.schema.json`. **Nenhuma compilação Swift/iOS, instalação ou teste físico foi executado. 0/36 tentativas físicas planejadas.** As conclusões deste ciclo são de inspeção e verificações estáticas em Linux.
 
 ## Implementado no código, aguardando execução
 
-- App com composição explícita; Domain, Conversation, Speech, Translation, Synthesis, Audio e Persistence em diretórios próprios. Rótulos/ordem preservados: **1. Falar**, **2. Transcrição • pode editar**, **3. Tradução** e **Medições**.
+- App com composição explícita; Domain, Conversation, Speech, Translation, Synthesis, Audio e Persistence em diretórios próprios. Na interface anterior, rótulos/ordem: **1. Falar**, **2. Transcrição • pode editar**, **3. Tradução** e **Medições**.
 - Coordenador com estados, rodada/operação identificadas, cancelamento, proteções contra callbacks antigos, metadados reiniciados em nova rodada e ações incompatíveis desabilitadas. **Nova rodada (texto digitado)** distingue um texto independente de correção da fala atual. Permissões assíncronas não devem reabrir uma gravação cancelada.
 - Gravação de até 20 s, ouvir original e importação local validada. Áudios em `Documents/ConversationAudio`, com nomes únicos; a tela acessa o áudio corrente. Importações exigem conteúdo válido de até 20 s/20 MB e 1–2 canais. Não iniciam download de iCloud; use **No Meu iPhone**, pois outros provedores podem materializar no seletor.
 - Speech com `supportsOnDeviceRecognition` e `requiresOnDeviceRecognition = true`, sem fallback remoto. Translation confere o par e exige `installed`; verifica novamente após `prepareTranslation()`, que pode retornar enquanto o download continua. A sessão pertence ao ciclo de vida da view, sem ficar retida no coordenador. Voz escolhe idioma exato e usa `AVSpeechSynthesizer`; execução offline ainda depende de teste no aparelho.

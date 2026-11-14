@@ -1,3 +1,11 @@
+# Atualização de câmera e interface — 13/11/2026
+
+**Não foram executados testes, build, instalação ou medições desta atualização**, conforme solicitação. As evidências abaixo são históricas e não validam os novos arquivos de câmera/UI.
+
+O responsável pelo Mac deve regenerar o projeto, compilar, executar os testes Swift existentes, validar os fluxos preservados e seguir o roteiro de câmera/VoiceOver em [CAMERA.md](CAMERA.md). Nenhum novo teste automatizado de câmera iOS foi executado ou declarado aprovado. Há novos componentes ainda sem cobertura automatizada específica.
+
+---
+
 # Testes e medições — iOS
 
 Em 09/11/2026: **0/36 tentativas físicas executadas**, nenhuma compilação Swift/iOS e nenhum teste Foundation executado. As verificações Linux abaixo são estáticas e não demonstram reconhecimento, tradução, voz ou correção de concorrência em execução.
