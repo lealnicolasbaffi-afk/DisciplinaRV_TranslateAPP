@@ -1,5 +1,70 @@
 # Android — versão 0.2.0
 
+## Correção de configuração e centralização — 13/11/2026
+
+Configuração agora abre em diálogo rolável, em vez de expandir um painel fora
+da área visível no fim da conversa. Ícones são desenhados no centro geométrico
+do botão, sem depender do alinhamento de compound drawables do TextView.
+Controle principal circular de 64 dp na câmera; controles auxiliares de 52 dp.
+Botões desabilitados reduzem a opacidade do símbolo. Teste instrumentado dedicado
+verifica se as ações de preparo e fechamento estão visíveis após tocar em configurar.
+Build/lint aprovados e correção conferida visualmente no Samsung SM-S926B:
+configurações em diálogo e pausa centralizada no círculo. Três testes de interface/
+armazenamento passaram, incluindo o novo teste de configuração; os dois testes de
+OCR/projeção também passaram neste ciclo.
+
+## Interface compacta com ícones — 13/11/2026
+
+Ações frequentes usam ícones vetoriais nativos de traço consistente: câmera,
+configuração, microfone/parar, importar áudio, ouvir, nova conversa, voltar,
+baixar idioma e congelar/retomar. Todos têm descrição acessível e tooltip.
+Conversa organizada em cartões com barras de ações, configuração fora do fluxo
+principal e avaliações recolhíveis. Avisos de erro permanecem visíveis.
+Câmera mantém retrato, preview amplo e nomes dos idiomas por extenso.
+Build, testes JVM e lint aprovados; interface instalada e conferida visualmente
+no Samsung SM-S926B. TalkBack e fontes ampliadas ainda exigem ensaio específico.
+
+## Ajustes de interface — 13/11/2026
+
+Interface nativa com paleta verde, superfícies claras, tipografia e espaçamento
+compartilhados. Conversa com entrada e tradução em cartões e destaque para falar
+e traduzir. Gravar/parar alternam conforme o estado. Medições permanecem recolhíveis.
+Câmera fixada em retrato, com cabeçalho compacto, tema escuro e controles inferiores;
+o preparo mostra “Idioma pronto” quando disponível, preservando a área do preview.
+
+Build principal/instrumentação e lint aprovados com JDK Temurin 21 e SDK 35.
+Testes JVM: 41 contabilizados, 39 aprovados, 2 ignorados por fixtures Vosk ausentes.
+Instalação por ADB no Samsung SM-S926B/Android 16 preservando os dados.
+Quatro testes instrumentados passaram: OCR sintético, projeção, abertura/recriação
+da conversa e recuperação de armazenamento isolado. Conferência visual confirmou
+interface da conversa, preview real em retrato e congelamento com opção de retomada.
+Uma captura inicial desfocada informou ausência de texto legível. Na conferência
+final, uma embalagem impressa foi reconhecida e recebeu traduções em português
+sobre as regiões na imagem congelada. Há erros de reconhecimento/tradução e fonte
+pequena nos blocos densos; isso não comprova estabilidade durante movimento.
+Fontes ampliadas, TalkBack, giro físico para ambos os lados e avaliação prolongada
+da sobreposição continuam pendentes.
+
+## Estabilização de câmera e projeção na superfície — 09/11/2026
+
+Implementado acompanhamento temporal de regiões por geometria e texto, consenso
+antes de traduzir, suavização adaptativa dos quatro cantos e descarte de regiões
+perdidas. Sobreposição agora usa projeção em perspectiva dentro do quadrilátero
+do texto, com fonte ajustada e cache de layout. Incluídos foco por toque, zoom,
+solicitação de OCR próximo de 1280×960 e captura congelada com OCR da imagem exata.
+A área do preview permanece com tamanho estável quando as mensagens mudam.
+
+Build principal/instrumentação e lint passaram. Dos 41 testes JVM, 39 passaram
+(incluindo 12 novos de acompanhamento) e 2 foram ignorados por falta dos ZIPs.
+Dois testes instrumentados passaram no Samsung SM-S926B / Android 16: OCR ML Kit
+real sobre imagem sintética e desenho/clipping de tradução em quadrilátero
+inclinado. App atualizado por ADB e tela principal reaberta com sucesso.
+
+O acompanhamento é 2D entre resultados de OCR; não usa fluxo óptico nem âncora
+3D. Estabilidade perceptiva com movimento, foco, oclusão, imagem congelada e modo
+avião ainda exige o roteiro físico de [CAMERA.md](CAMERA.md). Os testes sintéticos
+não medem equivalência visual ao Google Lens nem certificam esses cenários.
+
 ## Atualização de Hudson: câmera e OCR local — 09/11/2026
 
 Adicionada tradução ao vivo pela câmera traseira com CameraX 1.4.2 e OCR latino

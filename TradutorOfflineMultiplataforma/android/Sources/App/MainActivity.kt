@@ -10,6 +10,8 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowInsets
 import android.widget.*
+import br.edu.tradutoroffline.ui.IconButton
+import br.edu.tradutoroffline.ui.AppUi
 import android.text.Editable
 import android.text.TextWatcher
 import br.edu.tradutoroffline.domain.*
@@ -39,7 +41,8 @@ class MainActivity : Activity() {
     private lateinit var setupPanel: LinearLayout
     private lateinit var measurementsToggle: Button
     private lateinit var measurementsPanel: LinearLayout
-    private var setupExpanded = true
+    private var setupExpanded = false
+    private var settingsDialog: android.app.AlertDialog? = null
     private var measurementsExpanded = false
     private var lastResourcesReady = false
     private lateinit var modelPT: Button
@@ -59,7 +62,7 @@ class MainActivity : Activity() {
         @Suppress("DEPRECATION")
         val retained = lastNonConfigurationInstance as? ConversationController
         controller = retained ?: ConversationController(applicationContext) {}
-        val scroll = ScrollView(this)
+        val scroll = ScrollView(this).apply { setBackgroundColor(AppUi.background); isFillViewport = true }
         val body = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(20), dp(16), dp(20), dp(24))
@@ -77,21 +80,28 @@ class MainActivity : Activity() {
             insets
         }
         fun text(value: String, size: Float = 16f): TextView = TextView(this).apply {
-            text = value; textSize = size; setTextColor(Color.rgb(24, 38, 48)); setPadding(0, dp(9), 0, dp(5)); section.addView(this)
+            text = value; textSize = size; setTextColor(AppUi.muted)
+            setPadding(0, dp(if (size >= 20) 22 else 8), 0, dp(8))
+            if (size >= 20) AppUi.title(this)
+            section.addView(this)
         }
-        fun button(label: String, action: () -> Unit): Button = Button(this).apply {
-            text = label; isAllCaps = false; minHeight = dp(48)
-            setOnClickListener { action() }; section.addView(this)
+        fun button(label: String, action: () -> Unit): Button = IconButton(this).apply {
+            text = label; AppUi.button(this)
+            setOnClickListener { action() }
+            section.addView(this, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         }
         fun edit(hintText: String, minLinesCount: Int): EditText = EditText(this).apply {
             hint = hintText; contentDescription = hintText; minLines = minLinesCount
             gravity = android.view.Gravity.TOP
             inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE or android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-            section.addView(this)
+            textSize = 18f; setTextColor(AppUi.ink); setHintTextColor(AppUi.muted)
+            AppUi.surface(this)
+            section.addView(this, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6); bottomMargin = dp(8) })
         }
         fun spinner(labels: List<String>, selected: (Int) -> Unit): Spinner = Spinner(this).apply {
             adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, labels)
-            minimumHeight = dp(48)
+            minimumHeight = dp(56)
+            background = AppUi.shape(this, Color.WHITE, 16)
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { if (!rendering) selected(position) }
@@ -100,14 +110,14 @@ class MainActivity : Activity() {
         }
 
         text("Tradutor Offline", 26f)
-        text("Português brasileiro ↔ inglês americano · turnos de até 20 s")
+        text("Voz, texto e câmera", 14f)
         cameraTranslation = button("Traduzir com a câmera") {
             if (!controller.busy) startActivity(Intent(this, br.edu.tradutoroffline.features.camera.CameraTranslationActivity::class.java))
         }
-        text("Direção", 20f)
+        text("Português  ↔  Inglês", 16f)
         direction = spinner(Direction.entries.map { it.label }) { controller.selectDirection(Direction.entries[it]) }
         direction.contentDescription = "Direção da tradução"
-        setupToggle = button("Configurar idiomas e vozes") { setupExpanded = !setupExpanded; render() }
+        setupToggle = button("Configurar idiomas e vozes") { showSettings() }
         setupPanel = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; body.addView(this) }
         section = setupPanel
         prepare = button("Baixar e preparar idiomas (Wi-Fi)") { controller.prepare() }
@@ -130,19 +140,20 @@ class MainActivity : Activity() {
         modelEN = button("Importar modelo Vosk EN (ZIP)") { openFile(MODEL_EN, "application/zip") }
         preparation = text("")
         section = body
-        text("Estado", 20f)
         state = text("")
+        AppUi.surface(state, AppUi.pale)
         state.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
         cancel = button("Cancelar operação") { controller.interrupt("Operação cancelada. Os recursos já instalados foram preservados.") }
-        text("Gravação", 20f)
-        record = button("Gravar") {
+        text("Sua mensagem", 20f)
+        record = button("Começar a falar") {
             if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) controller.record()
             else requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), MICROPHONE)
         }
-        stop = button("Parar") { controller.stopRecording() }
+        AppUi.button(record, primary = true)
+        stop = button("Parar gravação") { controller.stopRecording() }
         importAudio = button("Importar áudio de reserva") { openFile(AUDIO, "audio/*") }
-        text("Transcrição (editável)", 20f)
-        input = edit("Fale, importe um áudio ou digite uma frase", 3)
+
+        input = edit("Digite ou toque no microfone", 3)
         original = button("Ouvir original") { controller.replayOriginal() }
         translate = button("Traduzir e falar") { controller.translate() }
         input.addTextChangedListener(watcher { value ->
@@ -151,8 +162,12 @@ class MainActivity : Activity() {
                 translate.isEnabled = controller.canTranslate && value.isNotBlank()
             }
         })
+        AppUi.button(translate, primary = true)
         text("Tradução", 20f)
-        output = text("")
+        output = text("", 22f)
+        AppUi.surface(output)
+        output.setTextColor(AppUi.ink)
+        output.minHeight = dp(112)
         output.setTextIsSelectable(true)
         replay = button("Reproduzir tradução") { controller.replayTranslation() }
         fresh = button("Nova rodada") { controller.reset() }
@@ -183,12 +198,65 @@ class MainActivity : Activity() {
                 putExtra(Intent.EXTRA_TITLE, "medicoes.json")
             }, EXPORT)
         }
-        section = body
-        text("Tempos são aproximações por callbacks. Nenhum teste físico é criado automaticamente. Modelos e vozes devem ser preparados antes do modo avião.", 14f)
+        section = measurementsPanel
+        text("Tempos são aproximações por callbacks. Modelos e vozes devem ser preparados antes do modo avião.", 14f)
+        // Compact toolbar: keep configuration outside the conversation flow.
+        val toolbar = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
+        fun moveIcon(button: Button, kind: String, label: String, parent: LinearLayout, primary: Boolean = false) {
+            (button.parent as? android.view.ViewGroup)?.removeView(button)
+            AppUi.icon(button, kind, label, primary)
+            parent.addView(button, LinearLayout.LayoutParams(dp(52), dp(52)).apply { marginEnd = dp(8) })
+        }
+        val brand = body.getChildAt(0)
+        body.removeView(brand)
+        toolbar.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
+        moveIcon(cameraTranslation, "camera", "Traduzir com a câmera", toolbar)
+        moveIcon(setupToggle, "settings", "Idiomas e vozes", toolbar)
+        body.addView(toolbar, 0)
+        val voiceActions = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
+        val inputIndex = body.indexOfChild(input)
+        body.addView(voiceActions, inputIndex + 1)
+        moveIcon(record, "mic", "Começar a falar, até 20 segundos", voiceActions, true)
+        moveIcon(stop, "stop", "Parar gravação", voiceActions, true)
+        moveIcon(importAudio, "folder", "Importar áudio", voiceActions)
+        moveIcon(original, "speaker", "Ouvir original", voiceActions)
+        (translate.parent as android.view.ViewGroup).removeView(translate)
+        translate.text = "Traduzir"
+        voiceActions.addView(translate, LinearLayout.LayoutParams(0, dp(52), 1f))
+        val resultActions = LinearLayout(this)
+        body.addView(resultActions, body.indexOfChild(output) + 1)
+        moveIcon(replay, "speaker", "Ouvir tradução", resultActions)
+        moveIcon(fresh, "plus", "Nova conversa", resultActions)
+        body.removeView(setupPanel)
+        measurementsToggle.textSize = 14f
         setContentView(scroll)
         controller.observe { render() }
         render()
         if (retained == null) controller.prepare(download = false)
+    }
+
+    private fun showSettings() {
+        if (settingsDialog?.isShowing == true) return
+        setupExpanded = true
+        render()
+        (setupPanel.parent as? android.view.ViewGroup)?.removeView(setupPanel)
+        val content = ScrollView(this).apply {
+            setPadding(dp(16), 0, dp(16), dp(8))
+            addView(setupPanel)
+        }
+        settingsDialog = android.app.AlertDialog.Builder(this)
+            .setTitle("Idiomas e vozes")
+            .setView(content)
+            .setPositiveButton("Fechar", null)
+            .create().also { dialog ->
+                dialog.setOnDismissListener {
+                    content.removeView(setupPanel)
+                    setupExpanded = false
+                    settingsDialog = null
+                    render()
+                }
+                dialog.show()
+            }
     }
 
     private fun render() {
@@ -196,14 +264,14 @@ class MainActivity : Activity() {
         try {
             state.text = if (controller.storageFailure == null) "${controller.stage.label}\n${controller.message}"
                 else "Erro de armazenamento\n${controller.storageFailure}\n${controller.message}"
+            state.visibility = if (controller.stage == Stage.READY && controller.storageFailure == null && controller.speechReady && controller.translationReady && controller.voiceReady) View.GONE else View.VISIBLE
             preparation.text = controller.preparation
             val resourcesReady = controller.speechReady && controller.translationReady && controller.voiceReady
-            if (resourcesReady && !lastResourcesReady) setupExpanded = false
             lastResourcesReady = resourcesReady
             setupPanel.visibility = if (setupExpanded) View.VISIBLE else View.GONE
-            setupToggle.text = if (setupExpanded) "Ocultar configuração de idiomas" else if (resourcesReady) "Idiomas prontos · configurar" else "Configurar idiomas e vozes"
+            setupToggle.contentDescription = if (setupExpanded) "Fechar configuração de idiomas" else "Configurar idiomas e vozes"
             measurementsPanel.visibility = if (measurementsExpanded) View.VISIBLE else View.GONE
-            measurementsToggle.text = "${if (measurementsExpanded) "Ocultar" else "Mostrar"} medições e avaliação · ${controller.count} salvas"
+            measurementsToggle.text = "${if (measurementsExpanded) "Fechar avaliação" else "Avaliação"} · ${controller.count}"
             direction.setSelection(controller.direction.ordinal)
             if (input.text.toString() != controller.input) input.setText(controller.input)
             output.text = controller.output.ifBlank { "A tradução aparecerá aqui." }
@@ -224,6 +292,8 @@ class MainActivity : Activity() {
             modelPT.isEnabled = !controller.busy; modelEN.isEnabled = !controller.busy
             record.isEnabled = controller.canRecord
             importAudio.isEnabled = controller.canRecord
+            stop.visibility = if (controller.stage == Stage.RECORDING) View.VISIBLE else View.GONE
+            record.visibility = if (controller.stage == Stage.RECORDING) View.GONE else View.VISIBLE
             stop.isEnabled = controller.stage == Stage.RECORDING
             translate.isEnabled = controller.canTranslate && controller.input.isNotBlank()
             input.isEnabled = !controller.busy
@@ -273,6 +343,8 @@ class MainActivity : Activity() {
     override fun onRetainNonConfigurationInstance(): Any = controller
 
     override fun onDestroy() {
+        settingsDialog?.setOnDismissListener(null)
+        settingsDialog?.dismiss()
         controller.observe {}
         if (!isChangingConfigurations) controller.close()
         super.onDestroy()

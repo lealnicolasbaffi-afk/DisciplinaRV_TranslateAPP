@@ -26,7 +26,7 @@ class AndroidSmokeTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val views = descendants(activity.window.decorView)
-                assertTrue(views.filterIsInstance<Button>().any { it.text == "Baixar e preparar idiomas (Wi-Fi)" })
+                assertTrue(views.filterIsInstance<Button>().any { it.contentDescription == "Configurar idiomas e vozes" })
                 val input = views.filterIsInstance<EditText>().first()
                 input.setText("Texto preservado ao girar a tela")
             }
@@ -35,6 +35,27 @@ class AndroidSmokeTest {
                 assertEquals("Texto preservado ao girar a tela", descendants(activity.window.decorView).filterIsInstance<EditText>().first().text.toString())
                 assertTrue(descendants(activity.window.decorView).filterIsInstance<TextView>().any { it.text == "Tradutor Offline" })
             }
+        }
+    }
+
+    @Test fun settingsOpensVisibleDialogFromToolbar() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                descendants(activity.window.decorView).filterIsInstance<Button>()
+                    .first { it.contentDescription == "Configurar idiomas e vozes" }.performClick()
+            }
+            instrumentation.waitForIdleSync()
+            var root = instrumentation.uiAutomation.rootInActiveWindow
+            val deadline = android.os.SystemClock.uptimeMillis() + 5000
+            while (root == null && android.os.SystemClock.uptimeMillis() < deadline) {
+                android.os.SystemClock.sleep(100)
+                root = instrumentation.uiAutomation.rootInActiveWindow
+            }
+            assertNotNull(root)
+            assertTrue(requireNotNull(root).findAccessibilityNodeInfosByText("Baixar e preparar idiomas (Wi-Fi)")
+                .any { it.isVisibleToUser })
+            assertTrue(requireNotNull(root).findAccessibilityNodeInfosByText("Fechar").any { it.isVisibleToUser })
         }
     }
 

@@ -1,5 +1,33 @@
 # Testes e evidências — Android 0.2.0
 
+## Estabilidade do OCR e perspectiva — 09/11/2026
+
+`Configuration/check.sh assembleDebugAndroidTest`: BUILD SUCCESSFUL, APK principal
+e de testes compilados, lint sem erros. Contagem JVM: 41 casos, 39 aprovados,
+2 ignorados (fixtures Vosk oficiais ausentes), zero falhas/erros.
+
+Os 12 testes novos em `Tests/Camera/TextRegionTrackerTest.kt` cobrem consenso,
+tremor, movimento, expiração, mudança de texto na mesma posição, erro isolado de
+OCR, regiões com palavras iguais, confiança/geometria inválidas, perspectiva,
+reinício, intervalos longos de reconhecimento e captura congelada.
+
+No Samsung SM-S926B / Android 16, com app e APK de testes atualizados por ADB:
+
+```sh
+adb -s RQCX10947JN shell am instrument -w -r \
+  -e class br.edu.tradutoroffline.features.camera.CameraSurfaceTest \
+  br.edu.tradutoroffline.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+Resultado: **OK (2 tests)**, 0,321 s. OCR ML Kit reconheceu “station” no bitmap
+sintético e forneceu quatro cantos válidos. O teste gráfico confirmou conteúdo
+dentro do painel inclinado e transparência fora da região projetada. Não usou
+câmera, fotos do usuário ou medições salvas. A Activity principal também reabriu
+com Status: ok após instalar a atualização.
+
+Essas verificações não substituem ensaio visual ao vivo de estabilidade,
+congelamento, foco/zoom e modo avião; seguir [CAMERA.md](CAMERA.md).
+
 ## Câmera: verificação anterior à integração — 09/11/2026
 
 **Verificação após integrar com a versão 0.2.0:**

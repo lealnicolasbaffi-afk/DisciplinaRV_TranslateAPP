@@ -24,6 +24,7 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false">
         <activity android:name="br.edu.tradutoroffline.features.camera.CameraTranslationActivity"
+            android:screenOrientation="portrait"
             android:exported="false" />
         <activity
             android:name="br.edu.tradutoroffline.app.MainActivity"

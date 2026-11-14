@@ -16,6 +16,9 @@ Aplicativo nativo Kotlin, português brasileiro ↔ inglês americano, por turno
 
 Use **Traduzir com a câmera** na tela inicial, autorize a câmera e escolha a direção.
 O OCR local vem incluído no APK e a tradução aparece sobre as regiões reconhecidas.
+As regiões são acompanhadas entre leituras e a tradução segue a perspectiva dos
+quatro cantos. Toque na imagem para focar, use dois dedos para ampliar ou escolha
+**Congelar imagem para ler** para manter uma captura parada com tradução alinhada.
 Se necessário, use **Preparar tradução (com Wi-Fi)**. Essa função não exige Vosk
 nem vozes. Veja [instruções, limites e testes pendentes](Docs/CAMERA.md).
 
